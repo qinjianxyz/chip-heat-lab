@@ -26,7 +26,9 @@ the same stylized AI accelerator floorplan.
 5. Re-run native bundle QA immediately before recording:
    `bash scripts/bundle_macos_app.sh && open dist/ChipHeatLab.app`.
 6. Re-run quiet public-surface checks immediately before submission:
-   `bash scripts/visual_smoke_test.sh` and `gh run list --repo qinjianxyz/chip-heat-lab --limit 5`.
+   `bash scripts/visual_smoke_test.sh`,
+   `python3 scripts/submission_readiness_check.py --require-video`, and
+   `gh run list --repo qinjianxyz/chip-heat-lab --limit 5`.
 
 ## P1 Polish
 
