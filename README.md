@@ -56,6 +56,7 @@ bash scripts/run_macos_demo.sh
 - `docs/gstack` - planning, review, QA, ship, canary, and retro artifacts.
 - `docs/review-runbook.md` - exact local review flow for judges and teammates.
 - `docs/next-steps.md` - current hackathon checklist after the foundation commit.
+- `docs/submission-copy.md` - founder-review draft copy for the hackathon form.
 
 ## Quick Start
 
