@@ -18,8 +18,9 @@ the same stylized AI accelerator floorplan.
 
 ## P0 Before Submission
 
-1. Founder-review the narrated fallback video. If it is not good enough, record
-   a live narrated replacement from the native macOS app and public Vercel site.
+1. Founder-review `docs/founder-review-packet.md`, including the narrated
+   fallback video. If the video is not good enough, record a live narrated
+   replacement from the native macOS app and public Vercel site.
 2. Founder-review `docs/submission-copy.md` and paste the approved version into
    the submission form.
 3. Do one visual polish pass after watching the approved recording.
