@@ -78,6 +78,8 @@ bash scripts/run_macos_demo.sh
 - `docs/review-runbook.md` - exact local review flow for judges and teammates.
 - `docs/next-steps.md` - current hackathon checklist after the foundation commit.
 - `docs/submission-copy.md` - founder-review draft copy for the hackathon form.
+- `docs/founder-review-packet.md` - final approval packet for the video
+  candidate, submission copy, and remaining human gate.
 
 ## Quick Start
 
