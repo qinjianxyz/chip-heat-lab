@@ -1,0 +1,6 @@
+target/
+site/node_modules/
+site/.next/
+site/out/
+apps/macos/ChipHeatLab/.build/
+apps/macos/ChipHeatLab/Resources/bin/chip_heat_cli

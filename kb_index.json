@@ -1,0 +1,72 @@
+[
+  {
+    "claim_level": "demo",
+    "id": "assumptions/control-effects",
+    "path": "kb/assumptions/control-effects.md",
+    "sources": [
+      "docs/model.md",
+      "scenarios/flagship.json"
+    ],
+    "summary": "The four controls intentionally expose visible relationships: workload phase changes the dominant heat source, power scale changes temperature rise, cooling preset increases the sink term, and floorplan mode moves the SRAM heat source.",
+    "title": "Control Effects",
+    "type": "assumption"
+  },
+  {
+    "claim_level": "demo",
+    "id": "assumptions/model-scope",
+    "path": "kb/assumptions/model-scope.md",
+    "sources": [
+      "docs/model.md",
+      "crates/chip_heat_core/src/lib.rs"
+    ],
+    "summary": "Chip Heat Lab assumes one fixed 96x96 grid, one stylized AI accelerator floorplan, demo-unit block power densities, and a 2D steady-state equation. The output is meant for relative intuition inside this scenario.",
+    "title": "Model Scope Assumptions",
+    "type": "assumption"
+  },
+  {
+    "claim_level": "demo",
+    "id": "demo-explanations/cooling",
+    "path": "kb/demo-explanations/cooling.md",
+    "sources": [
+      "docs/demo-script.md",
+      "docs/model.md"
+    ],
+    "summary": "The cooling preset changes `g_cool`, the simplified sink term. Higher cooling in this demo pulls the temperature rise down while keeping the same floorplan and workload.",
+    "title": "Cooling Demo Explanation",
+    "type": "demo_explanation"
+  },
+  {
+    "claim_level": "demo",
+    "id": "demo-explanations/sram-layout",
+    "path": "kb/demo-explanations/sram-layout.md",
+    "sources": [
+      "docs/demo-script.md",
+      "crates/chip_heat_core/src/lib.rs"
+    ],
+    "summary": "Clustered SRAM concentrates one memory-heavy source in the lower-left middle of the floorplan. Spread SRAM splits that source into two smaller regions, which changes the heatmap and can lower or move the peak in the inference KV phase.",
+    "title": "SRAM Layout Demo Explanation",
+    "type": "demo_explanation"
+  },
+  {
+    "claim_level": "boundary",
+    "id": "non-claims/claim-boundaries",
+    "path": "kb/non-claims/claim-boundaries.md",
+    "sources": [
+      "docs/non-claims.md"
+    ],
+    "summary": "Chip Heat Lab is not signoff, JEDEC evidence, foundry validation, CFD, package co-design, reliability analysis, HotSpot parity, 3D-ICE parity, commercial parity, or an accurate chip thermal simulator.",
+    "title": "Claim Boundaries",
+    "type": "non_claim"
+  },
+  {
+    "claim_level": "educational",
+    "id": "references/steady-state-equation",
+    "path": "kb/references/steady-state-equation.md",
+    "sources": [
+      "docs/model.md"
+    ],
+    "summary": "The demo equation is `-k * laplacian(T) + g_cool * (T - T_ambient) = q(x, y)`. The implementation solves for temperature rise above ambient with a small finite-difference iteration.",
+    "title": "Steady-State Equation Reference",
+    "type": "reference"
+  }
+]

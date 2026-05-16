@@ -1,0 +1,11 @@
+{
+  "scenario_name": "flagship_ai_accelerator",
+  "ambient_c": 35.0,
+  "conductivity": 0.62,
+  "controls": {
+    "workload_phase": "balanced",
+    "power_scale": 1.0,
+    "cooling_preset": "airflow",
+    "floorplan_mode": "clustered_sram"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "grid_size": 96,
+  "hotspot_centroid": {
+    "x": 26.756,
+    "y": 25.518
+  },
+  "iterations": 492,
+  "peak_c": 66.66,
+  "peak_cell": {
+    "x": 27,
+    "y": 26
+  },
+  "per_block_max": {
+    "Control": 40.436,
+    "MatMul Array A": 66.66,
+    "MatMul Array B": 62.641,
+    "NoC Spine": 52.453,
+    "SRAM / KV Cache": 52.453,
+    "SerDes / IO": 44.487
+  },
+  "residual_rounded": 0.0
+}
