@@ -105,8 +105,9 @@ export default function HomePage() {
           <div className="card">
             <h3>App Download</h3>
             <p>
-              The repo includes a reproducible unsigned macOS review archive
-              command: <code>scripts/package_macos_release.sh</code>.
+              Download the unsigned macOS preview archive from the{" "}
+              <a href="https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview">GitHub prerelease</a>,
+              with checksum and manifest included.
             </p>
           </div>
           <div className="card">
