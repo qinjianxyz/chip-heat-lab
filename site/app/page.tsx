@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Heatmap } from "../components/Heatmap";
+import { loadPowerBenchmark } from "../lib/powerBenchmark";
 import { loadSnapshots } from "../lib/snapshots";
 import { loadTransientBenchmark } from "../lib/transientBenchmark";
 import { loadValueBenchmark } from "../lib/valueBenchmark";
@@ -9,10 +10,14 @@ export default function HomePage() {
   const heroSnapshot = snapshots[0]?.snapshot;
   const benchmark = loadValueBenchmark();
   const transient = loadTransientBenchmark();
+  const power = loadPowerBenchmark();
   const kv = benchmark?.comparisons.kv_sram_floorplan_intervention;
   const cooling = benchmark?.comparisons.training_cooling_intervention;
   const transientBaseline = transient?.cases.baseline_clustered.metrics;
   const topIntervention = transient?.ranked_interventions[0];
+  const powerBaseline = power?.cases.kv_clustered_nominal;
+  const powerDense = power?.cases.kv_clustered_dense;
+  const powerSpread = power?.cases.kv_spread_nominal;
 
   return (
     <>
@@ -22,13 +27,14 @@ export default function HomePage() {
           <h1>Chip Heat Lab</h1>
           <p className="lead">
             A clean-room OSS hackathon demo where a Rust CLI solves one
-            simplified early-design thermal workflow for a stylized AI
-            accelerator floorplan, then ranks design interventions from exported
-            benchmark JSON.
+            simplified early-design thermal workflow and one power-delivery
+            proxy for a stylized AI accelerator floorplan, then ranks design
+            interventions from exported benchmark JSON.
           </p>
           <div className="actions">
             <Link className="button primary" href="/replay">Open Replay</Link>
             <Link className="button" href="#transient-review">Transient Review</Link>
+            <Link className="button" href="#power-proxy">Power Proxy</Link>
             <Link className="button" href="/model">Read Model</Link>
             <Link className="button" href="/knowledge">Knowledge Base</Link>
             <Link className="button" href="/non-claims">Claim Boundaries</Link>
@@ -151,6 +157,62 @@ export default function HomePage() {
                 <em>{item.thermal_dose_reduction_c_s.toFixed(1)} C-s dose</em>
               </div>
             ))}
+          </div>
+        ) : null}
+      </section>
+
+      <section className="section value-loop" id="power-proxy">
+        <div>
+          <p className="eyebrow">Power Delivery Proxy</p>
+          <h2>Add one adjacent hardware check</h2>
+          <p>
+            {power?.design_question ?? "Run `bash scripts/run_power_delivery_benchmark.sh` to generate the power-delivery proxy benchmark."}
+          </p>
+          <p>
+            This proxy reuses the same floorplan and block-power map to compare
+            idealized bump density and SRAM placement, then reports whether
+            droop and thermal hotspots overlap in the simplified model.
+          </p>
+        </div>
+        <div className="grid">
+          <div className="card metric-card">
+            <strong>{powerBaseline ? powerBaseline.worst_droop_mv.toFixed(1) : "--"}</strong>
+            <span>nominal KV worst droop mV</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{powerDense ? powerDense.worst_droop_mv.toFixed(1) : "--"}</strong>
+            <span>dense-bump worst droop mV</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{power ? power.comparisons.nominal_to_dense_bumps.droop_reduction_mv.toFixed(1) : "--"}</strong>
+            <span>dense-bump reduction mV</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{powerSpread ? powerSpread.worst_droop_mv.toFixed(1) : "--"}</strong>
+            <span>spread SRAM worst droop mV</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{powerBaseline ? powerBaseline.overlap_score.toFixed(2) : "--"}</strong>
+            <span>thermal/droop overlap score</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{power?.pass ? "pass" : "--"}</strong>
+            <span>power proxy gate</span>
+          </div>
+        </div>
+        {power ? (
+          <div className="rank-table" aria-label="Power delivery proxy cases">
+            {["kv_clustered_sparse", "kv_clustered_nominal", "kv_clustered_dense", "kv_spread_nominal"].map((name, index) => {
+              const item = power.cases[name];
+              return (
+                <div className="rank-row" key={name}>
+                  <span>{index + 1}</span>
+                  <strong>{name.replaceAll("_", " ")}</strong>
+                  <em>{item.worst_droop_mv.toFixed(1)} mV worst</em>
+                  <em>{item.bump_count} bumps</em>
+                </div>
+              );
+            })}
           </div>
         ) : null}
       </section>

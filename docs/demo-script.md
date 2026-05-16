@@ -22,10 +22,16 @@ Show the per-block table and the heatmap change.
 Switch cooling from passive or airflow to aggressive. Read the peak temperature
 change.
 
-## 70-90s: Explainability
+## 70-82s: Benchmarks
+
+Open the site. Show the transient ranking and the power-delivery proxy section:
+dense bumps reduce the droop proxy, spread SRAM reduces it in the nominal bump
+case, and the site is reading exported Rust benchmark JSON.
+
+## 82-90s: Explainability
 
 Open the explanation panel. Show assumptions and non-claims. Then open the site
-replay and note that it is reading exported Rust snapshots.
+knowledge page and note that it is reading the GBrain-ready markdown KB index.
 
 ## Recording Notes
 

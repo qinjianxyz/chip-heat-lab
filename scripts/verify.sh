@@ -44,6 +44,9 @@ bash scripts/run_value_benchmark.sh
 echo "== transient value benchmark =="
 bash scripts/run_transient_value_benchmark.sh
 
+echo "== power delivery proxy benchmark =="
+bash scripts/run_power_delivery_benchmark.sh
+
 echo "== macos resources =="
 bash scripts/prepare_macos_resources.sh
 

@@ -46,6 +46,20 @@ impl Default for FloorplanMode {
     }
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum PowerBumpPreset {
+    Sparse,
+    Nominal,
+    Dense,
+}
+
+impl Default for PowerBumpPreset {
+    fn default() -> Self {
+        Self::Nominal
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
 pub struct SimulationControls {
     pub workload_phase: WorkloadPhase,
@@ -142,6 +156,55 @@ pub struct SimulationResult {
     pub peak_cell: Cell,
     pub hotspot_centroid: Point,
     pub per_block_max: BTreeMap<String, f64>,
+    pub residual: f64,
+    pub iterations: usize,
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct PowerDeliveryProxyInput {
+    pub scenario_name: String,
+    pub controls: SimulationControls,
+    pub bump_preset: PowerBumpPreset,
+    pub sheet_conductance: f64,
+    pub bump_conductance: f64,
+    pub droop_scale_mv: f64,
+}
+
+impl Default for PowerDeliveryProxyInput {
+    fn default() -> Self {
+        Self {
+            scenario_name: "power_delivery_proxy_review".to_string(),
+            controls: SimulationControls {
+                workload_phase: WorkloadPhase::InferenceKv,
+                power_scale: 1.0,
+                cooling_preset: CoolingPreset::Airflow,
+                floorplan_mode: FloorplanMode::ClusteredSram,
+            },
+            bump_preset: PowerBumpPreset::Nominal,
+            sheet_conductance: 0.26,
+            bump_conductance: 1.45,
+            droop_scale_mv: 0.05,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct PowerDeliveryProxyResult {
+    pub scenario_name: String,
+    pub grid_size: usize,
+    pub controls: SimulationControls,
+    pub bump_preset: PowerBumpPreset,
+    pub bumps: Vec<Cell>,
+    pub floorplan: Vec<BlockLayout>,
+    pub droop_grid_mv: Vec<Vec<f64>>,
+    pub worst_droop_mv: f64,
+    pub worst_cell: Cell,
+    pub per_block_worst_droop_mv: BTreeMap<String, f64>,
+    pub thermal_peak_cell: Cell,
+    pub thermal_peak_c: f64,
+    pub hotspot_distance_cells: f64,
+    pub overlap_score: f64,
     pub residual: f64,
     pub iterations: usize,
     pub warnings: Vec<String>,
@@ -302,6 +365,62 @@ pub fn solve(input: &ScenarioInput) -> SimulationResult {
     }
 }
 
+pub fn solve_power_delivery_proxy(input: &PowerDeliveryProxyInput) -> PowerDeliveryProxyResult {
+    let controls = input.controls.clone();
+    let floorplan = flagship_floorplan(
+        controls.floorplan_mode,
+        controls.workload_phase,
+        controls.power_scale,
+    );
+    let current = power_grid(&floorplan);
+    let bumps = power_bumps(input.bump_preset);
+    let sheet = input.sheet_conductance.max(0.001);
+    let bump = input.bump_conductance.max(0.001);
+    let scale = input.droop_scale_mv.max(0.001);
+    let (raw_droop, iterations, residual, converged) =
+        solve_voltage_droop(&current, &bumps, sheet, bump);
+    let droop_grid_mv = to_scaled_grid(&raw_droop, scale);
+    let (worst_droop_mv, worst_cell) = peak(&droop_grid_mv);
+    let per_block_worst_droop_mv = per_block_max(&floorplan, &droop_grid_mv);
+    let thermal = solve(&ScenarioInput {
+        scenario_name: format!("{}_thermal_reference", input.scenario_name),
+        ambient_c: 35.0,
+        conductivity: 0.62,
+        controls: controls.clone(),
+    });
+    let hotspot_distance_cells = cell_distance(worst_cell, thermal.peak_cell);
+    let overlap_score = round3((1.0 - hotspot_distance_cells / 80.0).clamp(0.0, 1.0));
+
+    let mut warnings = Vec::new();
+    warnings.push("power_delivery_proxy_uses_idealized_bumps_and_demo_units".to_string());
+    if controls.power_scale > 2.5 {
+        warnings.push("power_scale_is_outside_the_demo_calibration_range".to_string());
+    }
+    if !converged {
+        warnings.push("power_proxy_solver_reached_iteration_limit".to_string());
+    }
+
+    PowerDeliveryProxyResult {
+        scenario_name: input.scenario_name.clone(),
+        grid_size: GRID_SIZE,
+        controls,
+        bump_preset: input.bump_preset,
+        bumps,
+        floorplan,
+        droop_grid_mv,
+        worst_droop_mv,
+        worst_cell,
+        per_block_worst_droop_mv,
+        thermal_peak_cell: thermal.peak_cell,
+        thermal_peak_c: thermal.peak_c,
+        hotspot_distance_cells: round3(hotspot_distance_cells),
+        overlap_score,
+        residual,
+        iterations,
+        warnings,
+    }
+}
+
 pub fn solve_transient(input: &TransientScenarioInput) -> TransientSimulationResult {
     let conductivity = input.conductivity.max(0.001);
     let g_cool = cooling_coefficient(input.cooling_preset);
@@ -430,6 +549,8 @@ pub fn schema_bundle() -> serde_json::Value {
     serde_json::json!({
         "ScenarioInput": schemars::schema_for!(ScenarioInput),
         "SimulationResult": schemars::schema_for!(SimulationResult),
+        "PowerDeliveryProxyInput": schemars::schema_for!(PowerDeliveryProxyInput),
+        "PowerDeliveryProxyResult": schemars::schema_for!(PowerDeliveryProxyResult),
         "TransientScenarioInput": schemars::schema_for!(TransientScenarioInput),
         "TransientSimulationResult": schemars::schema_for!(TransientSimulationResult)
     })
@@ -515,6 +636,19 @@ fn cooling_coefficient(preset: CoolingPreset) -> f64 {
     }
 }
 
+fn power_bumps(preset: PowerBumpPreset) -> Vec<Cell> {
+    let coordinates: Vec<usize> = match preset {
+        PowerBumpPreset::Sparse => vec![16, 80],
+        PowerBumpPreset::Nominal => vec![14, 48, 82],
+        PowerBumpPreset::Dense => vec![10, 28, 48, 68, 86],
+    };
+
+    coordinates
+        .iter()
+        .flat_map(|y| coordinates.iter().map(move |x| Cell { x: *x, y: *y }))
+        .collect()
+}
+
 fn power_grid(floorplan: &[BlockLayout]) -> Vec<f64> {
     let mut q = vec![0.0; GRID_SIZE * GRID_SIZE];
     for block in floorplan {
@@ -527,6 +661,45 @@ fn power_grid(floorplan: &[BlockLayout]) -> Vec<f64> {
         }
     }
     q
+}
+
+fn solve_voltage_droop(
+    current: &[f64],
+    bumps: &[Cell],
+    sheet_conductance: f64,
+    bump_conductance: f64,
+) -> (Vec<f64>, usize, f64, bool) {
+    let mut droop = vec![0.0; GRID_SIZE * GRID_SIZE];
+    let mut bump_grid = vec![0.0; GRID_SIZE * GRID_SIZE];
+    for bump in bumps {
+        bump_grid[idx(bump.x, bump.y)] = bump_conductance;
+    }
+
+    let tolerance = 1.0e-8;
+    let max_iterations = 18_000;
+    let mut iterations = 0;
+    let mut converged = false;
+
+    for iter in 1..=max_iterations {
+        let mut max_delta = 0.0_f64;
+        for y in 0..GRID_SIZE {
+            for x in 0..GRID_SIZE {
+                let cell = idx(x, y);
+                let denom = 4.0 * sheet_conductance + bump_grid[cell];
+                let next = (current[cell] + sheet_conductance * neighbor_sum(&droop, x, y)) / denom;
+                max_delta = max_delta.max((next - droop[cell]).abs());
+                droop[cell] = next;
+            }
+        }
+        iterations = iter;
+        if max_delta < tolerance {
+            converged = true;
+            break;
+        }
+    }
+
+    let residual = droop_residual(&droop, current, &bump_grid, sheet_conductance);
+    (droop, iterations, residual, converged)
 }
 
 fn solve_temperature_rise(q: &[f64], k: f64, g_cool: f64) -> (Vec<f64>, usize, f64, bool) {
@@ -603,11 +776,39 @@ fn residual(u: &[f64], q: &[f64], k: f64, g_cool: f64) -> f64 {
     max_residual
 }
 
+fn droop_residual(
+    droop: &[f64],
+    current: &[f64],
+    bump_grid: &[f64],
+    sheet_conductance: f64,
+) -> f64 {
+    let mut max_residual = 0.0_f64;
+    for y in 0..GRID_SIZE {
+        for x in 0..GRID_SIZE {
+            let cell = idx(x, y);
+            let lhs = (4.0 * sheet_conductance + bump_grid[cell]) * droop[cell]
+                - sheet_conductance * neighbor_sum(droop, x, y);
+            max_residual = max_residual.max((lhs - current[cell]).abs());
+        }
+    }
+    max_residual
+}
+
 fn to_temperature_grid(rise: &[f64], ambient_c: f64) -> Vec<Vec<f64>> {
     (0..GRID_SIZE)
         .map(|y| {
             (0..GRID_SIZE)
                 .map(|x| round3(ambient_c + rise[idx(x, y)]))
+                .collect()
+        })
+        .collect()
+}
+
+fn to_scaled_grid(values: &[f64], scale: f64) -> Vec<Vec<f64>> {
+    (0..GRID_SIZE)
+        .map(|y| {
+            (0..GRID_SIZE)
+                .map(|x| round3(values[idx(x, y)] * scale))
                 .collect()
         })
         .collect()
@@ -625,6 +826,10 @@ fn peak(grid: &[Vec<f64>]) -> (f64, Cell) {
         }
     }
     (peak_c, peak_cell)
+}
+
+fn cell_distance(left: Cell, right: Cell) -> f64 {
+    ((left.x as f64 - right.x as f64).powi(2) + (left.y as f64 - right.y as f64).powi(2)).sqrt()
 }
 
 fn hotspot_centroid(grid: &[Vec<f64>], ambient_c: f64, peak_c: f64) -> Point {
@@ -848,8 +1053,52 @@ mod tests {
         let schema = schema_bundle();
         assert!(schema.get("ScenarioInput").is_some());
         assert!(schema.get("SimulationResult").is_some());
+        assert!(schema.get("PowerDeliveryProxyInput").is_some());
+        assert!(schema.get("PowerDeliveryProxyResult").is_some());
         assert!(schema.get("TransientScenarioInput").is_some());
         assert!(schema.get("TransientSimulationResult").is_some());
+    }
+
+    #[test]
+    fn power_proxy_zero_power_returns_zero_droop() {
+        let result = solve_power_delivery_proxy(&PowerDeliveryProxyInput {
+            controls: SimulationControls {
+                power_scale: 0.0,
+                ..SimulationControls::default()
+            },
+            ..PowerDeliveryProxyInput::default()
+        });
+        assert_eq!(result.worst_droop_mv, 0.0);
+        assert!(result
+            .droop_grid_mv
+            .iter()
+            .flatten()
+            .all(|value| *value == 0.0));
+    }
+
+    #[test]
+    fn dense_bumps_reduce_power_proxy_droop() {
+        let sparse = solve_power_delivery_proxy(&PowerDeliveryProxyInput {
+            bump_preset: PowerBumpPreset::Sparse,
+            ..PowerDeliveryProxyInput::default()
+        });
+        let dense = solve_power_delivery_proxy(&PowerDeliveryProxyInput {
+            bump_preset: PowerBumpPreset::Dense,
+            ..PowerDeliveryProxyInput::default()
+        });
+        assert!(dense.worst_droop_mv < sparse.worst_droop_mv);
+        assert!(dense.iterations <= sparse.iterations + 2000);
+    }
+
+    #[test]
+    fn power_proxy_reports_hotspot_overlap() {
+        let result = solve_power_delivery_proxy(&PowerDeliveryProxyInput::default());
+        assert!(result.worst_droop_mv > 0.0);
+        assert!((0.0..=1.0).contains(&result.overlap_score));
+        assert!(result.hotspot_distance_cells >= 0.0);
+        assert!(result
+            .per_block_worst_droop_mv
+            .contains_key("SRAM / KV Cache"));
     }
 
     #[test]

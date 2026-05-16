@@ -37,6 +37,18 @@
   },
   {
     "claim_level": "demo",
+    "id": "demo-explanations/power-delivery-proxy",
+    "path": "kb/demo-explanations/power-delivery-proxy.md",
+    "sources": [
+      "docs/model.md",
+      "benchmarks/power_delivery_proxy/results.json"
+    ],
+    "summary": "The power-delivery proxy adds one adjacent early-design check to the thermal demo. Rust reuses the same floorplan and block-power map, places idealized power bumps on a 2D resistive grid, and reports worst droop, per-block worst droop, and the distance between thermal and droop hotspots. The benchmark compares sparse, nominal, and dense bump presets plus clustered versus spread SRAM.",
+    "title": "Power Delivery Proxy",
+    "type": "explanation"
+  },
+  {
+    "claim_level": "demo",
     "id": "demo-explanations/sram-layout",
     "path": "kb/demo-explanations/sram-layout.md",
     "sources": [

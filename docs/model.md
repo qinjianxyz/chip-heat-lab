@@ -58,3 +58,27 @@ tail. It reports:
 This makes the value loop closer to a design review: compare whether spreading
 SRAM, stronger cooling, or workload staggering reduces risk in the same
 simplified model.
+
+## Power Delivery Proxy
+
+The Rust core also exposes one adjacent power-delivery stress proxy:
+
+```text
+G_sheet * laplacian(D) + G_bump(x, y) * D = I(x, y)
+```
+
+Where `D` is a demo voltage-droop field in millivolts after scaling, `I(x, y)`
+is the same block power map used by the thermal solver, `G_sheet` is a tunable
+2D sheet conductance, and `G_bump(x, y)` is nonzero at idealized power bump
+locations. The proxy reports:
+
+- worst droop in millivolts;
+- worst droop cell;
+- per-block worst droop;
+- thermal peak cell from the same scenario;
+- distance and overlap score between thermal and droop hotspots.
+
+This is useful for early workflow intuition because it shows that the same
+floorplan and workload can create both a thermal concern and a power-delivery
+stress proxy. The bump presets are intentionally simple: sparse, nominal, and
+dense.

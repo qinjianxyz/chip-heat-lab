@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use chip_heat_core::{
-    schema_bundle, solve, solve_transient, ScenarioInput, TransientScenarioInput,
+    schema_bundle, solve, solve_power_delivery_proxy, solve_transient, PowerDeliveryProxyInput,
+    ScenarioInput, TransientScenarioInput,
 };
 use clap::Parser;
 use std::fs;
@@ -26,6 +27,10 @@ struct Args {
     /// Read TransientScenarioInput JSON and emit TransientSimulationResult JSON.
     #[arg(long)]
     transient: bool,
+
+    /// Read PowerDeliveryProxyInput JSON and emit PowerDeliveryProxyResult JSON.
+    #[arg(long)]
+    power_proxy: bool,
 }
 
 fn main() -> Result<()> {
@@ -36,8 +41,16 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    if args.transient && args.power_proxy {
+        anyhow::bail!("choose at most one solver mode: --transient or --power-proxy");
+    }
+
     let payload = read_payload(args.input)?;
-    if args.transient {
+    if args.power_proxy {
+        let input = parse_or_default::<PowerDeliveryProxyInput>(&payload)?;
+        let result = solve_power_delivery_proxy(&input);
+        print_json(&result, args.pretty)?;
+    } else if args.transient {
         let input = parse_or_default::<TransientScenarioInput>(&payload)?;
         let result = solve_transient(&input);
         print_json(&result, args.pretty)?;

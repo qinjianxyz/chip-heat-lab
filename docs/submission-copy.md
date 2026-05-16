@@ -6,8 +6,9 @@ submission form.
 ## Short Description
 
 Chip Heat Lab is a clean-room open-source demo of engineering simulation for
-chip design: a Rust thermal solver, a double-clickable SwiftUI app, and a
-Vercel replay that make early floorplan and workload tradeoffs visible.
+chip design: a Rust thermal solver, a bounded power-delivery proxy, a
+double-clickable SwiftUI app, and a Vercel replay that make early floorplan and
+workload tradeoffs visible.
 
 ## Longer Description
 
@@ -33,6 +34,13 @@ above threshold, thermal dose, spatial gradient, and hotspot travel. That gives
 the demo a more realistic design-review loop while keeping the claim boundary
 narrow.
 
+The power-delivery proxy adds one adjacent hardware check without expanding the
+project into a broad platform. It reuses the same floorplan and power map,
+places idealized power bumps on a resistive grid, and reports worst droop plus
+thermal/droop hotspot overlap. In the checked-in benchmark, dense bumps reduce
+the nominal KV clustered droop proxy from `67.534 mV` to `41.438 mV`, while
+spread SRAM with nominal bumps reduces it to `50.124 mV`.
+
 GBrain is used as an importable markdown knowledge base for assumptions,
 references, demo explanations, and claim boundaries, and the Vercel site exposes
 that generated index as a knowledge page. GStack is visible in the repo as
@@ -53,6 +61,6 @@ tests, quiet visual smoke proof, and artifacts that judges can inspect.
 
 ## Boundary Sentence
 
-Chip Heat Lab is a simplified early-design thermal intuition demo for one
-stylized floorplan, with unit tests and a deterministic benchmark; it is not a
-production validation workflow.
+Chip Heat Lab is a simplified early-design intuition demo for one stylized
+floorplan, with unit tests and deterministic benchmarks; it is not a production
+validation workflow.

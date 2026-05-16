@@ -16,6 +16,8 @@ Expected signal:
   `benchmarks/value_loop/results.json`.
 - The transient value benchmark passes and writes
   `benchmarks/transient_value_loop/results.json`.
+- The power-delivery proxy benchmark passes and writes
+  `benchmarks/power_delivery_proxy/results.json`.
 - KB index and replay snapshots are regenerated.
 - Swift build succeeds on macOS.
 - Non-claim lint passes.
@@ -29,8 +31,8 @@ bash scripts/visual_smoke_test.sh
 
 Expected signal:
 
-- The homepage contains the value benchmark, transient review, and build-system
-  sections.
+- The homepage contains the value benchmark, transient review, power-delivery
+  proxy, and build-system sections.
 - The knowledge page renders generated KB entries, including the transient value
   loop explanation.
 - The replay route renders a selected exported snapshot.
@@ -114,4 +116,7 @@ Expected package signal:
 8. Show the transient benchmark numbers: baseline spends measurable time over
    the demo threshold, workload staggering reduces the dose metric, and stronger
    cooling has the largest peak reduction in this scenario.
-9. Open the Vercel/local replay and knowledge pages.
+9. Show the power-delivery proxy numbers: dense bumps reduce the droop proxy,
+   spread SRAM reduces it in the nominal bump case, and thermal/droop hotspot
+   overlap is reported.
+10. Open the Vercel/local replay and knowledge pages.
