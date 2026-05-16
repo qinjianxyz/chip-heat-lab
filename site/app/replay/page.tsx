@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Heatmap } from "../../components/Heatmap";
 import { loadSnapshots } from "../../lib/snapshots";
+import { loadValueBenchmark } from "../../lib/valueBenchmark";
 
 export default function ReplayPage() {
   const snapshots = loadSnapshots();
   const selected = snapshots[0];
+  const benchmark = loadValueBenchmark();
+  const kv = benchmark?.comparisons.kv_sram_floorplan_intervention;
 
   return (
     <section className="doc-layout">
@@ -13,6 +16,14 @@ export default function ReplayPage() {
         This page reads JSON snapshots exported by the Rust CLI. It does not run
         a second solver in the browser.
       </p>
+      {benchmark ? (
+        <div className="card benchmark-strip">
+          <strong>Value benchmark:</strong>{" "}
+          spread SRAM lowers the KV workload peak by {kv?.peak_reduction_c.toFixed(3)} C
+          and moves the hotspot centroid {kv?.centroid_shift.distance_cells.toFixed(3)} grid cells
+          in this simplified model.
+        </div>
+      ) : null}
       {selected ? (
         <div className="replay-grid">
           <div className="snapshot-list">

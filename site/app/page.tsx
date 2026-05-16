@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { Heatmap } from "../components/Heatmap";
 import { loadSnapshots } from "../lib/snapshots";
+import { loadValueBenchmark } from "../lib/valueBenchmark";
 
 export default function HomePage() {
   const snapshots = loadSnapshots();
   const heroSnapshot = snapshots[0]?.snapshot;
-  const byName = new Map(snapshots.map((item) => [item.name, item.snapshot]));
-  const clustered = byName.get("inference_clustered");
-  const spread = byName.get("inference_spread");
-  const layoutDrop =
-    clustered && spread ? clustered.peak_c - spread.peak_c : undefined;
+  const benchmark = loadValueBenchmark();
+  const kv = benchmark?.comparisons.kv_sram_floorplan_intervention;
+  const cooling = benchmark?.comparisons.training_cooling_intervention;
 
   return (
     <>
@@ -57,27 +56,40 @@ export default function HomePage() {
 
       <section className="section value-loop">
         <div>
-          <p className="eyebrow">End-to-end value proof</p>
-          <h2>Answer one design question</h2>
+          <p className="eyebrow">Value Benchmark</p>
+          <h2>Answer one layout question</h2>
           <p>
-            For a KV-cache-heavy workload, does spreading SRAM reduce the
-            hotspot before changing the cooling budget? The demo computes both
-            floorplans with the same Rust model and reports the peak-temperature
-            delta.
+            {benchmark?.design_question ?? "Run `bash scripts/run_value_benchmark.sh` to generate the value-loop benchmark."}
+          </p>
+          <p>
+            The site reads exported benchmark JSON from the Rust CLI path; it
+            does not compute solver outputs in the browser.
           </p>
         </div>
         <div className="grid">
           <div className="card metric-card">
-            <strong>{clustered ? clustered.peak_c.toFixed(1) : "--"}</strong>
-            <span>clustered SRAM peak C</span>
+            <strong>{benchmark ? benchmark.cases.kv_clustered_sram.peak_c.toFixed(1) : "--"}</strong>
+            <span>KV clustered SRAM peak C</span>
           </div>
           <div className="card metric-card">
-            <strong>{spread ? spread.peak_c.toFixed(1) : "--"}</strong>
-            <span>spread SRAM peak C</span>
+            <strong>{benchmark ? benchmark.cases.kv_spread_sram.peak_c.toFixed(1) : "--"}</strong>
+            <span>KV spread SRAM peak C</span>
           </div>
           <div className="card metric-card">
-            <strong>{layoutDrop !== undefined ? layoutDrop.toFixed(1) : "--"}</strong>
-            <span>delta C in this simplified model</span>
+            <strong>{kv ? kv.peak_reduction_c.toFixed(1) : "--"}</strong>
+            <span>peak reduction C in this simplified model</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{kv ? kv.centroid_shift.distance_cells.toFixed(1) : "--"}</strong>
+            <span>centroid shift in grid cells</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{cooling ? cooling.peak_reduction_c.toFixed(1) : "--"}</strong>
+            <span>training cooling reduction C</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{benchmark?.pass ? "pass" : "--"}</strong>
+            <span>benchmark gate</span>
           </div>
         </div>
       </section>

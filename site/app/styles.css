@@ -237,6 +237,10 @@ li {
   font-size: 22px;
 }
 
+.benchmark-strip {
+  margin: 18px 0;
+}
+
 @media (max-width: 860px) {
   .hero,
   .replay-grid,

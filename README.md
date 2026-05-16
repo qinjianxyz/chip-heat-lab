@@ -52,6 +52,7 @@ bash scripts/run_macos_demo.sh
 ```bash
 cargo test --quiet
 cargo run --quiet -p chip_heat_cli -- --input scenarios/flagship.json
+bash scripts/run_value_benchmark.sh
 python3 scripts/generate_kb_index.py
 bash scripts/export_snapshots.sh
 ```
@@ -60,6 +61,24 @@ The CLI accepts a scenario JSON document via `--input <path>` or stdin and emits
 a `SimulationResult` JSON payload with `temperature_grid`, `peak_c`,
 `peak_cell`, `hotspot_centroid`, `per_block_max`, `residual`, `iterations`, and
 `warnings`.
+
+## Value Benchmark
+
+The value-loop benchmark asks one practical demo question: for a KV-cache-heavy
+workload, does spreading SRAM change hotspot and peak behavior before spending
+cooling budget?
+
+```bash
+bash scripts/run_value_benchmark.sh
+```
+
+The script runs the Rust CLI for four cases and writes
+`benchmarks/value_loop/results.json`. In the checked-in result, spread SRAM
+reduces the KV workload peak from `71.085 C` to `68.236 C`, a `2.849 C`
+reduction in this simplified model, while moving the hotspot centroid by
+`15.052` grid cells. As a comparison control, aggressive cooling lowers the
+training workload peak from `84.055 C` to `58.979 C`. This is usefulness proof
+for the demo loop, not physical validation.
 
 ## Site
 

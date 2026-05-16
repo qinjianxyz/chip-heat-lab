@@ -1,0 +1,140 @@
+{
+  "cases": {
+    "kv_clustered_sram": {
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "hotspot_centroid": {
+        "x": 43.075,
+        "y": 62.552
+      },
+      "iterations": 496,
+      "peak_c": 71.085,
+      "peak_cell": {
+        "x": 45,
+        "y": 63
+      },
+      "residual": 1.195608234638712e-08,
+      "scenario_name": "value_loop_kv_clustered_sram",
+      "sram_max_c": 71.085,
+      "warnings": []
+    },
+    "kv_spread_sram": {
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "spread_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "hotspot_centroid": {
+        "x": 58.125,
+        "y": 62.813
+      },
+      "iterations": 489,
+      "peak_c": 68.236,
+      "peak_cell": {
+        "x": 75,
+        "y": 62
+      },
+      "residual": 1.233807189748859e-08,
+      "scenario_name": "value_loop_kv_spread_sram",
+      "sram_max_c": 68.236,
+      "warnings": []
+    },
+    "training_aggressive_cooling": {
+      "controls": {
+        "cooling_preset": "aggressive",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "training_matmul"
+      },
+      "hotspot_centroid": {
+        "x": 26.56,
+        "y": 25.5
+      },
+      "iterations": 248,
+      "peak_c": 58.979,
+      "peak_cell": {
+        "x": 27,
+        "y": 25
+      },
+      "residual": 1.2081688094411902e-08,
+      "scenario_name": "value_loop_training_aggressive_cooling",
+      "sram_max_c": 45.058,
+      "warnings": []
+    },
+    "training_airflow": {
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "training_matmul"
+      },
+      "hotspot_centroid": {
+        "x": 26.605,
+        "y": 25.523
+      },
+      "iterations": 502,
+      "peak_c": 84.055,
+      "peak_cell": {
+        "x": 27,
+        "y": 26
+      },
+      "residual": 1.2144087957466354e-08,
+      "scenario_name": "value_loop_training_airflow",
+      "sram_max_c": 53.796,
+      "warnings": []
+    }
+  },
+  "comparisons": {
+    "kv_sram_floorplan_intervention": {
+      "baseline": "kv_clustered_sram",
+      "centroid_shift": {
+        "distance_cells": 15.052,
+        "dx_cells": 15.05,
+        "dy_cells": 0.261
+      },
+      "intervention": "kv_spread_sram",
+      "pass": true,
+      "pass_condition": "spread SRAM lowers KV workload peak by more than 0.1 C in the simplified model",
+      "peak_cell_shift": {
+        "dx_cells": 30,
+        "dy_cells": -1
+      },
+      "peak_reduction_c": 2.849,
+      "sram_max_reduction_c": 2.849
+    },
+    "training_cooling_intervention": {
+      "baseline": "training_airflow",
+      "centroid_shift": {
+        "distance_cells": 0.051,
+        "dx_cells": -0.045,
+        "dy_cells": -0.023
+      },
+      "intervention": "training_aggressive_cooling",
+      "pass": true,
+      "pass_condition": "aggressive cooling lowers training workload peak by more than 0.1 C in the simplified model",
+      "peak_cell_shift": {
+        "dx_cells": 0,
+        "dy_cells": -1
+      },
+      "peak_reduction_c": 25.076
+    }
+  },
+  "design_question": "For a KV-cache-heavy workload, does spreading SRAM change hotspot/peak behavior before spending cooling budget?",
+  "generated_by": "scripts/run_value_benchmark.sh",
+  "model_authority": "chip_heat_cli Rust CLI SimulationResult JSON",
+  "non_claim": "Usefulness proof for this simplified early-design thermal intuition demo; not physical validation.",
+  "pass": true,
+  "quality_gates": {
+    "max_iterations": 502,
+    "max_residual": 1.233807189748859e-08,
+    "no_warnings": true,
+    "pass": true,
+    "warnings_by_case": {}
+  },
+  "schema_version": "chip_heat_lab.value_loop.v1"
+}
