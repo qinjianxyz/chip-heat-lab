@@ -14,7 +14,8 @@ expanding physics scope.
 ## P0 Before Submission
 
 1. Record the 90-second demo video from the native app.
-2. Include the value benchmark result in the submission copy.
+2. Founder-review `docs/submission-copy.md` and paste the approved version into
+   the submission form.
 3. Add the demo video URL to `README.md`.
 4. Do one visual polish pass after watching the recording.
 5. Re-run native bundle QA immediately before recording:

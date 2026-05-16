@@ -11,4 +11,6 @@
 
 - Add a signed `.app` archive.
 - Record the 90-second walkthrough.
-- Replace placeholders on the site with actual download and video links.
+- Add the recorded video link to the README and live site.
+- Founder-review the draft submission copy before pasting it into the
+  hackathon form.
