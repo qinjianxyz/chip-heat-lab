@@ -30,14 +30,25 @@ Do not mark the project submission-ready until this decision is made.
 
 Latest verified state:
 
-- Main commit: `3e211c2`
-- Latest main CI: `docs: link demo video candidate (#14)` passed.
+- Main commit: `3baf978`
+- Latest main CI: `feat(demo): add chip design review cockpit (#16)` passed.
 - `python3 scripts/submission_readiness_check.py` reports
   `technical_ready=true`.
 - Release asset `chip-heat-lab-demo-narrated-fallback.mp4` is present and
-  serves with `content-length: 2366738`.
-- Live homepage contains the narrated fallback video link and founder approval
-  caveat.
+  should be refreshed after this packet if the design-review voiceover is
+  accepted.
+- Live homepage contains the design-review cockpit, GBrain/GStack proof cues,
+  release links, and founder approval caveat.
+
+Latest design-review proof:
+
+- Baseline clustered SRAM fails steady peak, transient dose, and droop proxy
+  constraints.
+- Recommended intervention: `Spread SRAM`.
+- Checked-in benchmark deltas: `2.849 C` peak drop, `9.227 C-s` dose drop,
+  and `17.410 mV` droop-proxy drop.
+- Public Vercel page renders those values from benchmark JSON, not a browser
+  solver.
 
 ## Submission Copy
 

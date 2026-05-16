@@ -84,10 +84,13 @@ review must be explainable end to end:
 - Commander QA found the Swift/Rust subprocess path could leave long-lived Rust
   CLI children and fixed the stdout drain order before waiting for process exit.
 - Vercel production deployment is live at <https://chip-heat-lab.vercel.app>
-  and includes the power-delivery proxy section and benchmark JSON.
-- The hackathon preview release is refreshed from main commit
-  `58c3fe72596158db9e973b8cbf6c8d60d3be0fd9` with unsigned app archive,
-  checksum, and manifest assets.
+  and includes the design-review cockpit, power-delivery proxy section, and
+  benchmark JSON.
+- PR #16, `feat(demo): add chip design review cockpit`, merged after CI and
+  made the design-review workflow the first-viewport story.
+- The hackathon preview release should be refreshed from a commit at or after
+  `3baf97882d26a55cb87ba840e049e9fd0b1f4b1c` with unsigned app archive,
+  checksum, manifest assets, and the latest narrated fallback video.
 - The same prerelease includes
   `chip-heat-lab-demo-narrated-fallback.mp4` as a review candidate. Founder
   approval is still required before treating it as the submission video.

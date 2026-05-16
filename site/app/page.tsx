@@ -14,7 +14,10 @@ import { loadValueBenchmark } from "../lib/valueBenchmark";
 
 export default function HomePage() {
   const snapshots = loadSnapshots();
-  const heroSnapshot = snapshots[0]?.snapshot;
+  const heroSnapshot =
+    snapshots.find((item) => item.name === "inference_spread")?.snapshot ??
+    snapshots.find((item) => item.name === "inference_clustered")?.snapshot ??
+    snapshots[0]?.snapshot;
   const designReview = loadDesignReview();
   const benchmark = loadValueBenchmark();
   const transient = loadTransientBenchmark();
@@ -31,6 +34,12 @@ export default function HomePage() {
   const powerBaseline = power?.cases.kv_clustered_nominal;
   const powerDense = power?.cases.kv_clustered_dense;
   const powerSpread = power?.cases.kv_spread_nominal;
+  const steadyDelta =
+    baseline && recommended ? baseline.steady_peak_c - recommended.steady_peak_c : undefined;
+  const droopDelta =
+    baseline && recommended ? baseline.worst_droop_mv - recommended.worst_droop_mv : undefined;
+  const doseDelta =
+    baseline && recommended ? baseline.thermal_dose_c_s - recommended.thermal_dose_c_s : undefined;
   const metricValue = (value: number | undefined, digits = 1, suffix = "") =>
     typeof value === "number" ? `${value.toFixed(digits)}${suffix}` : "--";
   const reviewInputLayers = [
@@ -119,19 +128,19 @@ export default function HomePage() {
                 <div className="physics-metric-grid">
                   <div>
                     <strong>{metricValue(recommended.max_gradient_c_per_cell)}</strong>
-                    <span>max thermal gradient C/cell</span>
+                    <span>max gradient C/cell</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.hotspot_path_distance_cells)}</strong>
-                    <span>hotspot path cells</span>
+                    <span>hotspot travel cells</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.thermal_pdn_distance_cells)}</strong>
-                    <span>thermal-PDN distance cells</span>
+                    <span>thermal-PDN gap cells</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.risk_utilization?.worst_droop, 2, "x")}</strong>
-                    <span>droop limit utilization</span>
+                    <span>droop utilization</span>
                   </div>
                 </div>
               ) : null}
@@ -156,10 +165,15 @@ export default function HomePage() {
             <div className="cockpit-visual-stack">
               <div className="demo-shell compact-heatmap">
                 <div className="demo-head">
-                  <span>Rust snapshot replay</span>
+                  <span>Recommended field: spread SRAM</span>
                   <span>{heroSnapshot ? `${heroSnapshot.peak_c.toFixed(1)} C peak` : "export snapshots"}</span>
                 </div>
                 {heroSnapshot ? <Heatmap snapshot={heroSnapshot} /> : <div className="section">Run `bash scripts/export_snapshots.sh`.</div>}
+                <div className="field-delta-strip" aria-label="Design review deltas">
+                  <span>{metricValue(steadyDelta)} C peak drop</span>
+                  <span>{metricValue(doseDelta)} C-s dose drop</span>
+                  <span>{metricValue(droopDelta)} mV droop drop</span>
+                </div>
               </div>
               <div className="model-stack-panel" aria-label="Review input stack">
                 <div className="model-stack-title">

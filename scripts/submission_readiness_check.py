@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO = "qinjianxyz/chip-heat-lab"
 SITE = "https://chip-heat-lab.vercel.app"
 RELEASE_TAG = "v0.1.0-hackathon-preview"
-POWER_PROXY_COMMIT = "58c3fe72596158db9e973b8cbf6c8d60d3be0fd9"
+DESIGN_REVIEW_COMMIT = "3baf97882d26a55cb87ba840e049e9fd0b1f4b1c"
 DEMO_VIDEO_ASSET = "chip-heat-lab-demo-narrated-fallback.mp4"
 DEMO_VIDEO_URL = (
     "https://github.com/qinjianxyz/chip-heat-lab/releases/download/"
@@ -310,7 +310,7 @@ def release_assets() -> dict[str, Any]:
         manifest = json.loads((tmp_path / "ChipHeatLab-macos-unsigned-hackathon-preview.manifest.json").read_text())
     manifest_commit = str(manifest.get("git_commit"))
     run(["git", "merge-base", "--is-ancestor", manifest_commit, "HEAD"])
-    run(["git", "merge-base", "--is-ancestor", POWER_PROXY_COMMIT, manifest_commit])
+    run(["git", "merge-base", "--is-ancestor", DESIGN_REVIEW_COMMIT, manifest_commit])
     if data.get("body", "").find(manifest_commit) < 0:
         return fail("release_assets", "release notes do not mention the manifest commit", manifest_commit=manifest_commit)
     return ok(

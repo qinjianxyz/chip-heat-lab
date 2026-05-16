@@ -8,7 +8,7 @@ submission form.
 Chip Heat Lab is a clean-room open-source demo of engineering simulation for
 chip design: a Rust thermal solver, a bounded power-delivery proxy, a
 double-clickable SwiftUI app, and a Vercel replay that make early floorplan and
-workload tradeoffs visible.
+workload tradeoffs visible as a design-review decision.
 
 ## Longer Description
 
@@ -40,6 +40,13 @@ places idealized power bumps on a resistive grid, and reports worst droop plus
 thermal/droop hotspot overlap. In the checked-in benchmark, dense bumps reduce
 the nominal KV clustered droop proxy from `67.534 mV` to `41.438 mV`, while
 spread SRAM with nominal bumps reduces it to `50.124 mV`.
+
+The composed design-review benchmark is the flagship workflow. The baseline
+clustered-SRAM KV-cache case fails simplified peak, thermal-dose, and droop
+constraints. Rust ranks six interventions and recommends `Spread SRAM` as the
+lowest-cost passing candidate, lowering the checked-in peak estimate by
+`2.849 C`, transient dose by `9.227 C-s`, and droop proxy by `17.410 mV`.
+That makes the result useful as a review artifact, not just a visualization.
 
 GBrain is used as an importable markdown knowledge base for assumptions,
 references, demo explanations, and claim boundaries, and the Vercel site exposes

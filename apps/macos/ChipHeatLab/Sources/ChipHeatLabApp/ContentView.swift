@@ -2,10 +2,10 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var controls = SimulationControls(
-        workloadPhase: .balanced,
+        workloadPhase: .inferenceKv,
         powerScale: 1.0,
         coolingPreset: .airflow,
-        floorplanMode: .clusteredSram
+        floorplanMode: .spreadSram
     )
     @State private var result: SimulationResult?
     @State private var previousCentroid: Point?
@@ -44,7 +44,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Chip Heat Lab")
                     .font(.headline)
-                Text("Rust-backed early-design review: thermal, transient, and power delivery proxy")
+                Text("Native design-review cockpit: Rust thermal, transient, and power-delivery proxy")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -79,10 +79,10 @@ struct ContentView: View {
     private var leftPane: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Interactive Solver")
+                Text("Live Scenario Controls")
                     .font(.title3)
                     .bold()
-                Text("Fast heatmap controls stay live while the design review runs as a separate Rust CLI mode.")
+                Text("The app opens on the recommended KV-cache spread-SRAM case. Toggle back to clustered SRAM to show the hotter baseline behind the review.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -166,6 +166,17 @@ struct ContentView: View {
             Text("Floorplan + Heatmap")
                 .font(.title3)
                 .bold()
+            if let result {
+                HStack(spacing: 8) {
+                    ReviewStatusPill(text: result.controls.workloadPhase.label.uppercased(), color: .blue)
+                    ReviewStatusPill(text: result.controls.floorplanMode.label.uppercased(), color: .green)
+                    ReviewStatusPill(text: "\(result.iterations) SOLVER ITERS", color: .gray)
+                    Spacer()
+                    Text("residual \(result.residual, format: .number.precision(.significantDigits(2)))")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
             GeometryReader { geometry in
                 if let result {
                     ZStack {
@@ -320,7 +331,7 @@ struct ContentView: View {
             }
         }
         .padding(12)
-        .background(.green.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+        .background(.green.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var blockMaxPanel: some View {
@@ -542,6 +553,7 @@ struct ContentView: View {
             .map { BlockRow(name: $0.key, value: $0.value) }
             .sorted { $0.value > $1.value }
     }
+
 }
 
 struct BlockRow: Identifiable {
@@ -741,6 +753,16 @@ struct HeatmapView: View {
     }
 }
 
+private func chipBlockDisplayName(_ name: String) -> String {
+    switch name {
+    case "MatMul Array A": return "MatMul A"
+    case "MatMul Array B": return "MatMul B"
+    case "SRAM / KV Cache": return "SRAM / KV"
+    case "NoC Spine": return "NoC"
+    default: return name
+    }
+}
+
 struct FloorplanOverlay: View {
     var blocks: [BlockLayout]
 
@@ -757,8 +779,8 @@ struct FloorplanOverlay: View {
                             .background(Color.white.opacity(0.05))
                             .frame(width: CGFloat(rect.width) * scaleX, height: CGFloat(rect.height) * scaleY)
                             .offset(x: CGFloat(rect.x) * scaleX, y: CGFloat(rect.y) * scaleY)
-                        Text(block.name)
-                            .font(.caption2)
+                        Text(chipBlockDisplayName(block.name))
+                            .font(rect.width <= 8 ? .system(size: 9, weight: .bold) : .caption2)
                             .foregroundStyle(.white)
                             .padding(3)
                             .background(.black.opacity(0.35), in: RoundedRectangle(cornerRadius: 4))

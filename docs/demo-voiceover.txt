@@ -1,15 +1,15 @@
-Chip Heat Lab is a clean room open source demo of engineering simulation for chip design. It is not signoff, not foundry validation, and not a production thermal tool.
+Chip Heat Lab is a clean room open source demo of engineering simulation for chip design. It is not a production validation workflow. It is a narrow design review cockpit for one stylized AI accelerator floorplan.
 
-The flagship demo is one stylized AI accelerator floorplan. A SwiftUI macOS app sends scenario JSON to a Rust command line solver. Rust computes the heatmap, peak temperature estimate, hotspot centroid, per block maximums, residual, and warnings.
+The first screen shows the value loop. The baseline clustered SRAM design fails three simplified checks: steady thermal peak, transient thermal dose, and a power delivery droop proxy. Rust owns the benchmark JSON behind those checks.
 
-First, the workload changes. A balanced workload spreads heat across the chip. A KV cache heavy workload moves the hotspot toward the memory region, so the design question becomes visible instead of abstract.
+The cockpit does not just draw a heatmap. It compares candidate interventions and ranks them against explicit demo constraints. In the checked in review, spread SRAM is the lowest cost passing candidate.
 
-Next, SRAM placement changes the field. With clustered SRAM, the memory hotspot concentrates in one region. With spread SRAM, the same simplified workload moves the hotspot and lowers the checked in peak estimate from seventy one point zero eight five Celsius to sixty eight point two three six Celsius.
+The recommended field is still computed by the Rust solver. The peak estimate drops from seventy one point one Celsius to sixty eight point two Celsius. The transient dose drops from thirteen point five to four point three Celsius seconds. The droop proxy drops from sixty seven point five to fifty point one millivolts.
 
-Cooling still matters, but it is not the whole story. Stronger cooling lowers the peak, while the floorplan still determines where the risk concentrates.
+That is the hardware team workflow we are showing: do not argue about a pretty picture; ask what failed, what intervention passed, what it costs, and what assumption explains the result.
 
-The public site shows the evidence behind the demo. The transient benchmark compares spreading SRAM, stronger cooling, and workload staggering over a bursty trace. The power delivery proxy reuses the same floorplan and power map, and shows dense bumps reducing the droop proxy from sixty seven point five millivolts to forty one point four millivolts.
+The native macOS app runs the same Rust command line backend through JSON. The Vercel site replays exported Rust artifacts and benchmark outputs; the browser is not a second solver.
 
 GBrain is represented by the importable markdown knowledge base for assumptions, references, explanations, and claim boundaries. GStack is represented by the scope lock, engineering review, QA plan, ship checklist, and retro artifacts.
 
-The point is a narrow, honest workflow: one chip design decision, computed by Rust, shown natively, replayed on the web, and backed by tests, benchmarks, and explicit non claims.
+Chip Heat Lab is useful because it turns an early chip floorplan tradeoff into an inspectable decision artifact: one design, three simplified checks, ranked interventions, tests, benchmarks, and explicit non claims.

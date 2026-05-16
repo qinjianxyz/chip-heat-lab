@@ -2,6 +2,28 @@
 
 **Engineering simulation for chip design, shown as one simplified early-design design-review demo.**
 
+## Pitch
+
+Hardware teams do not need another pretty heatmap in isolation. They need a
+fast way to turn an early floorplan question into a reviewable engineering
+decision: what failed, which intervention passed, what it cost, and which
+assumptions make the answer trustworthy.
+
+**Chip Heat Lab** is that workflow in miniature. For one stylized AI accelerator
+floorplan, Rust computes steady thermal risk, transient thermal dose, and a
+bounded power-delivery droop proxy, then ranks candidate interventions against
+explicit demo constraints. The macOS app gives the live native demo; the Vercel
+site gives the public replay; GBrain makes the assumptions inspectable; GStack
+shows the scope, review, QA, and ship discipline behind the hackathon build.
+
+This is intentionally not the full product. It is a clean-room public wedge:
+one narrow design-review artifact that proves the shape of value. A full Anvil
+Sim-style product can be much deeper: richer geometry ingestion, more solver
+families, validation ladders against reference cases, native evidence packs,
+team review workflows, and integrations with real hardware design flows. This
+repo stays honest by showing the smallest useful version without borrowing
+private code or claiming production validation.
+
 Chip Heat Lab is a clean-room OSS hackathon repo that demonstrates one stylized
 AI accelerator floorplan. A Rust CLI solves fixed 96x96 steady and transient
 thermal hotspot models, a simplified power-delivery proxy, and a composed

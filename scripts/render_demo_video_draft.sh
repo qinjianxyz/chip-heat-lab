@@ -12,14 +12,20 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
   exit 1
 fi
 
+bash scripts/visual_smoke_test.sh
+
+NATIVE_REVIEW="dist/visual-proof/native-app.png"
+if [[ ! -f "${NATIVE_REVIEW}" ]]; then
+  NATIVE_REVIEW="dist/demo-capture/02-native-kv.png"
+fi
+NATIVE_INTERACTIVE="dist/demo-capture/01-native-balanced.png"
+
 required=(
-  "dist/demo-capture/01-native-balanced.png"
-  "dist/demo-capture/02-native-kv.png"
-  "dist/demo-video/03-kv-clustered.png"
-  "dist/demo-video/04-kv-spread.png"
-  "dist/demo-video/05-cooling.png"
-  "dist/demo-video/01-home.png"
-  "dist/demo-video/02-balanced.png"
+  "dist/visual-proof/home.png"
+  "dist/visual-proof/replay-inference-spread.png"
+  "dist/visual-proof/knowledge.png"
+  "${NATIVE_REVIEW}"
+  "${NATIVE_INTERACTIVE}"
 )
 
 missing=0
@@ -39,15 +45,15 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 images=(
-  "${ROOT}/dist/demo-capture/01-native-balanced.png"
-  "${ROOT}/dist/demo-capture/02-native-kv.png"
-  "${ROOT}/dist/demo-video/03-kv-clustered.png"
-  "${ROOT}/dist/demo-video/04-kv-spread.png"
-  "${ROOT}/dist/demo-video/05-cooling.png"
-  "${ROOT}/dist/demo-video/01-home.png"
-  "${ROOT}/dist/demo-video/02-balanced.png"
+  "${ROOT}/dist/visual-proof/home.png"
+  "${ROOT}/${NATIVE_REVIEW}"
+  "${ROOT}/dist/visual-proof/replay-inference-spread.png"
+  "${ROOT}/dist/visual-proof/knowledge.png"
+  "${ROOT}/${NATIVE_INTERACTIVE}"
+  "${ROOT}/dist/visual-proof/home.png"
+  "${ROOT}/dist/visual-proof/replay-inference-spread.png"
 )
-durations=(10 13 13 13 11 16 14)
+durations=(24 16 12 12 12 8 6)
 
 : >"${TMP}/segments.txt"
 for idx in "${!images[@]}"; do

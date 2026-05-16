@@ -1,5 +1,14 @@
 import type { Snapshot } from "../lib/snapshots";
 
+const blockLabels: Record<string, string> = {
+  "MatMul Array A": "MatMul A",
+  "MatMul Array B": "MatMul B",
+  "SRAM / KV Cache": "SRAM / KV",
+  "NoC Spine": "NoC",
+  "SerDes / IO": "SerDes / IO",
+  Control: "Control",
+};
+
 export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
   const cells = [];
   for (let y = 0; y < snapshot.grid_size; y += 1) {
@@ -43,7 +52,7 @@ export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
         {snapshot.floorplan.flatMap((block) =>
           block.rects.map((rect, index) => (
             <div
-              className="floorplan-block"
+              className={`floorplan-block ${rect.width <= 8 ? "narrow-block" : ""}`}
               key={`${block.name}-${index}`}
               style={{
                 left: `${(rect.x / snapshot.grid_size) * 100}%`,
@@ -52,7 +61,7 @@ export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
                 height: `${(rect.height / snapshot.grid_size) * 100}%`,
               }}
             >
-              <span>{block.name}</span>
+              <span>{blockLabels[block.name] ?? block.name}</span>
             </div>
           ))
         )}
