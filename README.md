@@ -9,6 +9,13 @@ a Next.js site replays exported solver snapshots. The project is intentionally
 small: it helps a viewer build intuition about how workload, power, cooling, and
 SRAM placement can move a hotspot in an early concept model.
 
+## Links
+
+- GitHub: <https://github.com/qinjianxyz/chip-heat-lab>
+- Live site: <https://chip-heat-lab.vercel.app>
+- Replay: <https://chip-heat-lab.vercel.app/replay>
+- Demo video: pending recording.
+
 ## What You Can Demo In 90 Seconds
 
 1. Open the macOS app and run the flagship floorplan.
@@ -81,6 +88,8 @@ training workload peak from `84.055 C` to `58.979 C`. This is usefulness proof
 for the demo loop, not physical validation.
 
 ## Site
+
+Live: <https://chip-heat-lab.vercel.app>
 
 ```bash
 npm --prefix site install --silent
