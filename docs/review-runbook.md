@@ -67,7 +67,21 @@ Expected bundle signal:
 - `pgrep -fl chip_heat_cli` does not show stuck child processes after the first
   run settles.
 
-## 5. Recording Checklist
+## 5. Package the Unsigned Review Archive
+
+```bash
+bash scripts/package_macos_release.sh hackathon-preview
+(cd dist && shasum -a 256 -c ChipHeatLab-macos-unsigned-hackathon-preview.zip.sha256)
+cat dist/ChipHeatLab-macos-unsigned-hackathon-preview.manifest.json
+```
+
+Expected package signal:
+
+- `dist/ChipHeatLab-macos-unsigned-hackathon-preview.zip` exists.
+- The checksum verifies.
+- The manifest records the git commit, branch, byte size, and unsigned status.
+
+## 6. Recording Checklist
 
 1. Run the native app.
 2. Show the default balanced heatmap.
