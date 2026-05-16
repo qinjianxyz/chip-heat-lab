@@ -14,7 +14,7 @@ SRAM placement can move a hotspot in an early concept model.
 - GitHub: <https://github.com/qinjianxyz/chip-heat-lab>
 - Live site: <https://chip-heat-lab.vercel.app>
 - Replay: <https://chip-heat-lab.vercel.app/replay>
-- App release: pending upload from `scripts/package_macos_release.sh`
+- App release: <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
 - Demo video: pending recording.
 
 ## What You Can Demo In 90 Seconds
