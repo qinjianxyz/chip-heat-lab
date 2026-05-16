@@ -37,6 +37,7 @@ model.
 bash scripts/verify.sh
 bash scripts/visual_smoke_test.sh
 python3 scripts/submission_readiness_check.py
+bash scripts/render_demo_video_draft.sh
 bash scripts/run_site_demo.sh
 bash scripts/run_macos_demo.sh
 ```
@@ -49,6 +50,9 @@ bash scripts/run_macos_demo.sh
 - Submission readiness: `scripts/submission_readiness_check.py` checks the
   public site, GitHub CI, branch protection, prerelease assets, public benchmark
   JSON, and remaining human blockers.
+- Recording dry run: `scripts/render_demo_video_draft.sh` renders a silent
+  90-second storyboard MP4 from captured stills under `dist/demo-capture/` and
+  `dist/demo-video/`.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
   `dist/ChipHeatLab.app` for local review. It is unsigned.
 - Release zip: `scripts/package_macos_release.sh hackathon-preview` writes a
