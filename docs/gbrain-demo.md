@@ -14,6 +14,25 @@ bash scripts/gbrain_import.sh
 bash scripts/gbrain_query_demo.sh
 ```
 
+## What GBrain Owns In The Demo
+
+GBrain is not decorative in Chip Heat Lab. The repo keeps the explanation layer
+as an importable knowledge base with explicit claim levels:
+
+- `kb/assumptions/*` explains the simplified model knobs and data contracts.
+- `kb/demo-explanations/*` explains why a specific benchmark or control changes
+  the review result.
+- `kb/non-claims/*` keeps the claim boundary visible when the demo is narrated.
+- `kb/references/*` keeps source notes close to the app-facing explanations.
+
+The app and site use the generated `kb_index.json` as their local fallback, so
+the visible explanations remain source-backed even if the local GBrain service
+is unavailable during the hackathon demo. The intended GBrain story is:
+"the same markdown knowledge system can be imported, queried, and rendered in
+the product surface."
+
+## Design-Review Queries
+
 Example queries to run during a demo:
 
 - "What assumptions does Chip Heat Lab make?"
@@ -27,6 +46,11 @@ Example queries to run during a demo:
 - "Why does workload staggering reduce thermal risk in the demo?"
 - "What does the power-delivery proxy compare?"
 - "Do thermal and droop hotspots overlap in the benchmark?"
+- "Why did the design review recommend spread SRAM?"
+- "Which constraints did the baseline fail?"
+- "How does the design-review benchmark use the GBrain KB?"
+- "Why is aggressive cooling not the recommended first intervention?"
+- "Why is dense power bumping not enough by itself?"
 
 No transcript is included here because query output depends on the local GBrain
 installation and should be captured only after the commands are actually run.

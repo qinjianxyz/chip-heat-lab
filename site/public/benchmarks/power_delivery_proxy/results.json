@@ -5,7 +5,7 @@
       "bump_preset": "dense",
       "floorplan_mode": "clustered_sram",
       "hotspot_distance_cells": 8.944,
-      "iterations": 6565,
+      "iterations": 1148,
       "overlap_score": 0.888,
       "per_block_worst_droop_mv": {
         "Control": 12.436,
@@ -15,7 +15,7 @@
         "SRAM / KV Cache": 41.438,
         "SerDes / IO": 16.633
       },
-      "residual": 5.193555807636585e-09,
+      "residual": 9.613427831567378e-10,
       "scenario_name": "power_delivery_kv_clustered_dense",
       "thermal_peak_c": 71.085,
       "thermal_peak_cell": {
@@ -37,7 +37,7 @@
       "bump_preset": "nominal",
       "floorplan_mode": "clustered_sram",
       "hotspot_distance_cells": 10.44,
-      "iterations": 12078,
+      "iterations": 2133,
       "overlap_score": 0.869,
       "per_block_worst_droop_mv": {
         "Control": 29.462,
@@ -47,7 +47,7 @@
         "SRAM / KV Cache": 67.534,
         "SerDes / IO": 29.521
       },
-      "residual": 5.192084762128957e-09,
+      "residual": 9.587168836588944e-10,
       "scenario_name": "power_delivery_kv_clustered_nominal",
       "thermal_peak_c": 71.085,
       "thermal_peak_cell": {
@@ -69,7 +69,7 @@
       "bump_preset": "sparse",
       "floorplan_mode": "clustered_sram",
       "hotspot_distance_cells": 8.485,
-      "iterations": 17110,
+      "iterations": 3023,
       "overlap_score": 0.894,
       "per_block_worst_droop_mv": {
         "Control": 43.862,
@@ -79,7 +79,7 @@
         "SRAM / KV Cache": 86.702,
         "SerDes / IO": 39.08
       },
-      "residual": 5.193324215113648e-09,
+      "residual": 8.515144145349041e-10,
       "scenario_name": "power_delivery_kv_clustered_sparse",
       "thermal_peak_c": 71.085,
       "thermal_peak_cell": {
@@ -101,7 +101,7 @@
       "bump_preset": "nominal",
       "floorplan_mode": "spread_sram",
       "hotspot_distance_cells": 8.062,
-      "iterations": 12049,
+      "iterations": 2132,
       "overlap_score": 0.899,
       "per_block_worst_droop_mv": {
         "Control": 49.566,
@@ -111,7 +111,7 @@
         "SRAM / KV Cache": 50.124,
         "SerDes / IO": 21.47
       },
-      "residual": 5.191743701615792e-09,
+      "residual": 9.550789048518027e-10,
       "scenario_name": "power_delivery_kv_spread_nominal",
       "thermal_peak_c": 68.236,
       "thermal_peak_cell": {
@@ -133,7 +133,7 @@
       "bump_preset": "nominal",
       "floorplan_mode": "clustered_sram",
       "hotspot_distance_cells": 7.211,
-      "iterations": 12226,
+      "iterations": 2153,
       "overlap_score": 0.91,
       "per_block_worst_droop_mv": {
         "Control": 48.204,
@@ -143,7 +143,7 @@
         "SRAM / KV Cache": 57.628,
         "SerDes / IO": 20.193
       },
-      "residual": 5.197438479598304e-09,
+      "residual": 9.622594943081708e-10,
       "scenario_name": "power_delivery_training_nominal",
       "thermal_peak_c": 84.055,
       "thermal_peak_cell": {

@@ -28,8 +28,10 @@ fi
 
 rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
+rm -rf site/.next 2>/dev/null || true
 
-npm --prefix site run dev -- --port "${PORT}" >"${LOG_DIR}/next.log" 2>&1 &
+npm --prefix site run build --silent >"${LOG_DIR}/next-build.log" 2>&1
+npm --prefix site run start -- --port "${PORT}" >"${LOG_DIR}/next.log" 2>&1 &
 SERVER_PID=$!
 
 for _ in {1..60}; do
@@ -39,16 +41,32 @@ for _ in {1..60}; do
   sleep 1
 done
 
-curl -fsS "${BASE_URL}" >/dev/null
+if ! curl -fsS "${BASE_URL}" >/dev/null; then
+  echo "visual smoke failed: ${BASE_URL} did not return HTTP 200" >&2
+  echo "Next build log:" >&2
+  tail -80 "${LOG_DIR}/next-build.log" >&2 || true
+  echo "Next log:" >&2
+  tail -80 "${LOG_DIR}/next.log" >&2 || true
+  exit 1
+fi
 
 check_page() {
   local path="$1"
   shift
   local html="${LOG_DIR}/page.html"
-  curl -fsS "${BASE_URL}${path}" >"${html}"
+  if ! curl -fsS "${BASE_URL}${path}" >"${html}"; then
+    echo "visual smoke failed: ${path} did not return HTTP 200" >&2
+    echo "Next build log:" >&2
+    tail -80 "${LOG_DIR}/next-build.log" >&2 || true
+    echo "Next log:" >&2
+    tail -80 "${LOG_DIR}/next.log" >&2 || true
+    return 1
+  fi
   for needle in "$@"; do
     if ! grep -q "${needle}" "${html}"; then
       echo "visual smoke failed: ${path} is missing '${needle}'" >&2
+      echo "Next build log:" >&2
+      tail -80 "${LOG_DIR}/next-build.log" >&2 || true
       echo "Next log:" >&2
       tail -80 "${LOG_DIR}/next.log" >&2 || true
       return 1
@@ -56,8 +74,8 @@ check_page() {
   done
 }
 
-check_page "/" "Transient Review" "Value Benchmark" "Power Delivery Proxy" "Inspectable Build System" "narrated fallback video"
-check_page "/knowledge" "Knowledge Base" "Transient Value Loop" "Power Delivery Proxy" "GBrain-ready knowledge system"
+check_page "/" "Design review cockpit" "Flagship Workflow" "Power Delivery Proxy" "Inspectable Build System" "narrated fallback video"
+check_page "/knowledge" "Knowledge Base" "Design Review Workflow" "Power Delivery Proxy" "GBrain-ready knowledge system"
 check_page "/replay?snapshot=inference_spread" "inference_spread" "Replay"
 
 find_chrome() {
@@ -79,6 +97,8 @@ find_chrome() {
 if CHROME="$(find_chrome)"; then
   "${CHROME}" --headless=new --disable-gpu --hide-scrollbars --window-size=1440,1200 \
     --screenshot="${OUT_DIR}/home.png" "${BASE_URL}/" >/dev/null 2>&1
+  "${CHROME}" --headless=new --disable-gpu --hide-scrollbars --window-size=390,900 \
+    --screenshot="${OUT_DIR}/home-mobile.png" "${BASE_URL}/" >/dev/null 2>&1
   "${CHROME}" --headless=new --disable-gpu --hide-scrollbars --window-size=1440,1200 \
     --screenshot="${OUT_DIR}/knowledge.png" "${BASE_URL}/knowledge" >/dev/null 2>&1
   "${CHROME}" --headless=new --disable-gpu --hide-scrollbars --window-size=1440,1200 \

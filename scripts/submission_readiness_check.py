@@ -124,15 +124,21 @@ def live_site() -> dict[str, Any]:
     missing = []
     for needle in [
         "Chip Heat Lab",
+        "Design review cockpit",
         "Power Delivery Proxy",
-        "Transient Review",
+        "Flagship Workflow",
         "GitHub prerelease",
         "67.5",
         "41.4",
     ]:
         if needle not in homepage:
             missing.append(f"home:{needle}")
-    for needle in ["Knowledge Base", "GBrain-ready knowledge system", "Power Delivery Proxy"]:
+    for needle in [
+        "Knowledge Base",
+        "GBrain-ready knowledge system",
+        "Design Review Workflow",
+        "Power Delivery Proxy",
+    ]:
         if needle not in knowledge:
             missing.append(f"knowledge:{needle}")
     if missing:
@@ -140,10 +146,90 @@ def live_site() -> dict[str, Any]:
     return ok("live_site", site=SITE)
 
 
+def design_review_expected_violations(
+    candidate: dict[str, Any], constraints: dict[str, Any]
+) -> list[str]:
+    violations = []
+    if candidate.get("steady_peak_c", 0) > constraints.get("peak_limit_c", float("inf")):
+        violations.append("steady_kv_peak_above_limit")
+    if candidate.get("thermal_dose_c_s", 0) > constraints.get("thermal_dose_limit_c_s", float("inf")):
+        violations.append("transient_thermal_dose_above_limit")
+    if candidate.get("worst_droop_mv", 0) > constraints.get("droop_limit_mv", float("inf")):
+        violations.append("power_delivery_droop_above_limit")
+    if candidate.get("overlap_score", 0) > constraints.get("overlap_limit", float("inf")):
+        violations.append("thermal_droop_overlap_above_limit")
+    return violations
+
+
+def validate_design_review(data: dict[str, Any]) -> list[str]:
+    failures = []
+    ranked = data.get("ranked_candidates")
+    baseline = data.get("baseline")
+    constraints = data.get("constraints")
+    quality_gates = data.get("quality_gates") or {}
+    if data.get("schema_version") != "chip_heat_lab.design_review.v1":
+        failures.append("schema_version")
+    if data.get("pass") is not True or quality_gates.get("pass") is not True:
+        failures.append("pass_gate")
+    if data.get("recommended_intervention") != "spread_sram":
+        failures.append("recommendation")
+    if not isinstance(ranked, list) or len(ranked) < 6:
+        failures.append("candidate_count")
+    if not isinstance(baseline, dict) or not isinstance(constraints, dict):
+        failures.append("baseline_or_constraints")
+        return failures
+
+    candidates = [baseline] + (ranked if isinstance(ranked, list) else [])
+    for candidate in candidates:
+        expected = design_review_expected_violations(candidate, constraints)
+        if candidate.get("constraint_violations") != expected:
+            failures.append(f"{candidate.get('intervention', 'unknown')}_violations")
+        if candidate.get("pass") is not (expected == []):
+            failures.append(f"{candidate.get('intervention', 'unknown')}_pass")
+
+    if isinstance(ranked, list) and ranked:
+        sorted_ranked = sorted(
+            ranked,
+            key=lambda item: (
+                item.get("rank_score", float("inf")),
+                item.get("cost_score", float("inf")),
+                item.get("label", ""),
+            ),
+        )
+        if [item.get("intervention") for item in ranked] != [item.get("intervention") for item in sorted_ranked]:
+            failures.append("rank_order")
+        passing = [item for item in ranked if item.get("pass") is True]
+        if not passing:
+            failures.append("no_passing_candidate")
+        else:
+            lowest_cost = min(
+                passing,
+                key=lambda item: (
+                    item.get("cost_score", float("inf")),
+                    item.get("rank_score", float("inf")),
+                    item.get("label", ""),
+                ),
+            )
+            if lowest_cost.get("intervention") != data.get("recommended_intervention"):
+                failures.append("lowest_cost_passing")
+
+    summary = data.get("benchmark_summary") or {}
+    if summary.get("steady_peak_reduction_c", 0) <= 0:
+        failures.append("steady_peak_reduction")
+    if summary.get("thermal_dose_reduction_c_s", 0) <= 0:
+        failures.append("thermal_dose_reduction")
+    if summary.get("worst_droop_reduction_mv", 0) <= 0:
+        failures.append("worst_droop_reduction")
+    if "not final verification" not in str(data.get("non_claim", "")):
+        failures.append("non_claim")
+    return failures
+
+
 def public_benchmarks() -> dict[str, Any]:
     value = fetch_json(f"{SITE}/benchmarks/value_loop/results.json")
     transient = fetch_json(f"{SITE}/benchmarks/transient_value_loop/results.json")
     power = fetch_json(f"{SITE}/benchmarks/power_delivery_proxy/results.json")
+    design = fetch_json(f"{SITE}/benchmarks/design_review/results.json")
     failures = []
     if not value.get("pass"):
         failures.append("value_loop")
@@ -151,6 +237,9 @@ def public_benchmarks() -> dict[str, Any]:
         failures.append("transient_value_loop")
     if not power.get("pass"):
         failures.append("power_delivery_proxy")
+    design_failures = validate_design_review(design)
+    if design_failures:
+        failures.append(f"design_review:{','.join(design_failures)}")
     if failures:
         return fail("public_benchmarks", "one or more public benchmark gates failed", failures=failures)
     cases = power.get("cases", {})
@@ -160,6 +249,7 @@ def public_benchmarks() -> dict[str, Any]:
         transient_top_intervention=transient["ranked_interventions"][0]["intervention"],
         power_nominal_droop_mv=cases["kv_clustered_nominal"]["worst_droop_mv"],
         power_dense_droop_mv=cases["kv_clustered_dense"]["worst_droop_mv"],
+        design_recommendation=design["recommended_intervention"],
     )
 
 
@@ -167,10 +257,12 @@ def public_kb() -> dict[str, Any]:
     data = fetch_json(f"{SITE}/kb/kb_index.json")
     entries = data if isinstance(data, list) else data.get("entries") or []
     ids = {entry.get("id") for entry in entries}
-    if len(entries) < 9:
-        return fail("public_kb", "expected at least 9 KB entries", count=len(entries))
+    if len(entries) < 10:
+        return fail("public_kb", "expected at least 10 KB entries", count=len(entries))
     if "demo-explanations/power-delivery-proxy" not in ids:
         return fail("public_kb", "power-delivery KB page is missing", count=len(entries))
+    if "demo-explanations/design-review" not in ids:
+        return fail("public_kb", "design-review KB page is missing", count=len(entries))
     return ok("public_kb", count=len(entries))
 
 

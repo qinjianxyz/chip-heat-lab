@@ -1,0 +1,287 @@
+{
+  "baseline": {
+    "bump_preset": "nominal",
+    "constraint_violations": [
+      "steady_kv_peak_above_limit",
+      "transient_thermal_dose_above_limit",
+      "power_delivery_droop_above_limit"
+    ],
+    "controls": {
+      "cooling_preset": "airflow",
+      "floorplan_mode": "clustered_sram",
+      "power_scale": 1.0,
+      "workload_phase": "inference_kv"
+    },
+    "cost_score": 0.0,
+    "hotspot_path_distance_cells": 71.884,
+    "intervention": "baseline",
+    "label": "Baseline clustered SRAM",
+    "max_gradient_c_per_cell": 7.288,
+    "overlap_score": 0.869,
+    "pass": false,
+    "rank_score": 1105.514,
+    "reason": "Baseline clustered SRAM still violates steady_kv_peak_above_limit, transient_thermal_dose_above_limit, power_delivery_droop_above_limit with 71.1 C steady KV peak, 13.5 C-s thermal dose, and 67.5 mV worst droop.",
+    "risk_utilization": {
+      "overlap": 0.869,
+      "steady_peak": 1.015,
+      "thermal_dose": 2.698,
+      "worst_droop": 1.228
+    },
+    "steady_peak_c": 71.085,
+    "thermal_dose_c_s": 13.49,
+    "thermal_pdn_distance_cells": 10.44,
+    "time_above_threshold_s": 12.2,
+    "transient_max_peak_c": 73.003,
+    "worst_droop_mv": 67.534
+  },
+  "benchmark_summary": {
+    "baseline_hotspot_path_distance_cells": 71.884,
+    "baseline_intervention": "baseline",
+    "baseline_max_gradient_c_per_cell": 7.288,
+    "baseline_thermal_pdn_distance_cells": 10.44,
+    "passing_candidate_count": 3,
+    "recommended_hotspot_path_distance_cells": 109.29,
+    "recommended_intervention": "spread_sram",
+    "recommended_max_gradient_c_per_cell": 7.288,
+    "recommended_thermal_pdn_distance_cells": 8.062,
+    "steady_peak_reduction_c": 2.849,
+    "thermal_dose_reduction_c_s": 9.227,
+    "worst_droop_reduction_mv": 17.41
+  },
+  "constraints": {
+    "droop_limit_mv": 55.0,
+    "overlap_limit": 1.0,
+    "peak_limit_c": 70.0,
+    "thermal_dose_limit_c_s": 5.0
+  },
+  "design_question": "Which lowest-cost intervention makes the KV-cache design review pass the simplified thermal and power-delivery constraints?",
+  "generated_by": "scripts/run_design_review_benchmark.sh",
+  "model_authority": "chip_heat_cli Rust CLI DesignReviewResult JSON",
+  "non_claim": "Early-design ranking for this clean-room demo only; not final verification, not manufacturing validation, not standards compliance, not package airflow analysis, and not a physical PDN model.",
+  "pareto_frontier": [
+    "spread_sram",
+    "spread_sram_dense_bumps",
+    "spread_sram_dense_bumps_staggered",
+    "staggered_workload",
+    "aggressive_cooling",
+    "dense_power_bumps"
+  ],
+  "pass": true,
+  "quality_gates": {
+    "all_candidate_constraints_recomputed": true,
+    "baseline_fails_all_primary_constraints": true,
+    "baseline_fails_constraints": true,
+    "candidate_count": 6,
+    "deterministic_cli_output": true,
+    "lowest_cost_passing_intervention": "spread_sram",
+    "pass": true,
+    "ranked_candidates_sorted_by_score": true,
+    "recommended_improves_all_primary_metrics": true,
+    "recommended_is_spread_sram": true,
+    "recommended_passes_constraints": true
+  },
+  "ranked_candidates": [
+    {
+      "bump_preset": "nominal",
+      "constraint_violations": [],
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "spread_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 2.0,
+      "hotspot_path_distance_cells": 109.29,
+      "intervention": "spread_sram",
+      "label": "Spread SRAM",
+      "max_gradient_c_per_cell": 7.288,
+      "overlap_score": 0.899,
+      "pass": true,
+      "rank_score": 109.19,
+      "reason": "Spread SRAM passes the simplified constraints with 68.2 C steady KV peak, 4.3 C-s thermal dose, and 50.1 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.899,
+        "steady_peak": 0.975,
+        "thermal_dose": 0.853,
+        "worst_droop": 0.911
+      },
+      "steady_peak_c": 68.236,
+      "thermal_dose_c_s": 4.263,
+      "thermal_pdn_distance_cells": 8.062,
+      "time_above_threshold_s": 2.9,
+      "transient_max_peak_c": 73.003,
+      "worst_droop_mv": 50.124
+    },
+    {
+      "bump_preset": "dense",
+      "constraint_violations": [],
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "spread_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 4.5,
+      "hotspot_path_distance_cells": 109.29,
+      "intervention": "spread_sram_dense_bumps",
+      "label": "Spread SRAM + dense bumps",
+      "max_gradient_c_per_cell": 7.288,
+      "overlap_score": 0.955,
+      "pass": true,
+      "rank_score": 126.916,
+      "reason": "Spread SRAM + dense bumps passes the simplified constraints with 68.2 C steady KV peak, 4.3 C-s thermal dose, and 29.3 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.955,
+        "steady_peak": 0.975,
+        "thermal_dose": 0.853,
+        "worst_droop": 0.533
+      },
+      "steady_peak_c": 68.236,
+      "thermal_dose_c_s": 4.263,
+      "thermal_pdn_distance_cells": 3.606,
+      "time_above_threshold_s": 2.9,
+      "transient_max_peak_c": 73.003,
+      "worst_droop_mv": 29.341
+    },
+    {
+      "bump_preset": "dense",
+      "constraint_violations": [],
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "spread_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 5.7,
+      "hotspot_path_distance_cells": 237.259,
+      "intervention": "spread_sram_dense_bumps_staggered",
+      "label": "Spread SRAM + dense bumps + stagger workload",
+      "max_gradient_c_per_cell": 5.599,
+      "overlap_score": 0.955,
+      "pass": true,
+      "rank_score": 135.505,
+      "reason": "Spread SRAM + dense bumps + stagger workload passes the simplified constraints with 68.2 C steady KV peak, 0.0 C-s thermal dose, and 29.3 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.955,
+        "steady_peak": 0.975,
+        "thermal_dose": 0.0,
+        "worst_droop": 0.533
+      },
+      "steady_peak_c": 68.236,
+      "thermal_dose_c_s": 0.0,
+      "thermal_pdn_distance_cells": 3.606,
+      "time_above_threshold_s": 0.0,
+      "transient_max_peak_c": 66.277,
+      "worst_droop_mv": 29.341
+    },
+    {
+      "bump_preset": "nominal",
+      "constraint_violations": [
+        "steady_kv_peak_above_limit",
+        "power_delivery_droop_above_limit"
+      ],
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 1.2,
+      "hotspot_path_distance_cells": 154.041,
+      "intervention": "staggered_workload",
+      "label": "Stagger workload",
+      "max_gradient_c_per_cell": 5.599,
+      "overlap_score": 0.869,
+      "pass": false,
+      "rank_score": 1106.722,
+      "reason": "Stagger workload still violates steady_kv_peak_above_limit, power_delivery_droop_above_limit with 71.1 C steady KV peak, 0.0 C-s thermal dose, and 67.5 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.869,
+        "steady_peak": 1.015,
+        "thermal_dose": 0.0,
+        "worst_droop": 1.228
+      },
+      "steady_peak_c": 71.085,
+      "thermal_dose_c_s": 0.0,
+      "thermal_pdn_distance_cells": 10.44,
+      "time_above_threshold_s": 0.0,
+      "transient_max_peak_c": 69.009,
+      "worst_droop_mv": 67.534
+    },
+    {
+      "bump_preset": "nominal",
+      "constraint_violations": [
+        "power_delivery_droop_above_limit"
+      ],
+      "controls": {
+        "cooling_preset": "aggressive",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 4.0,
+      "hotspot_path_distance_cells": 68.046,
+      "intervention": "aggressive_cooling",
+      "label": "Aggressive cooling",
+      "max_gradient_c_per_cell": 5.85,
+      "overlap_score": 0.86,
+      "pass": false,
+      "rank_score": 1117.51,
+      "reason": "Aggressive cooling still violates power_delivery_droop_above_limit with 53.9 C steady KV peak, 0.0 C-s thermal dose, and 67.5 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.86,
+        "steady_peak": 0.77,
+        "thermal_dose": 0.0,
+        "worst_droop": 1.228
+      },
+      "steady_peak_c": 53.873,
+      "thermal_dose_c_s": 0.0,
+      "thermal_pdn_distance_cells": 11.18,
+      "time_above_threshold_s": 0.0,
+      "transient_max_peak_c": 61.676,
+      "worst_droop_mv": 67.534
+    },
+    {
+      "bump_preset": "dense",
+      "constraint_violations": [
+        "steady_kv_peak_above_limit",
+        "transient_thermal_dose_above_limit"
+      ],
+      "controls": {
+        "cooling_preset": "airflow",
+        "floorplan_mode": "clustered_sram",
+        "power_scale": 1.0,
+        "workload_phase": "inference_kv"
+      },
+      "cost_score": 2.5,
+      "hotspot_path_distance_cells": 71.884,
+      "intervention": "dense_power_bumps",
+      "label": "Dense power bumps",
+      "max_gradient_c_per_cell": 7.288,
+      "overlap_score": 0.888,
+      "pass": false,
+      "rank_score": 1121.38,
+      "reason": "Dense power bumps still violates steady_kv_peak_above_limit, transient_thermal_dose_above_limit with 71.1 C steady KV peak, 13.5 C-s thermal dose, and 41.4 mV worst droop.",
+      "risk_utilization": {
+        "overlap": 0.888,
+        "steady_peak": 1.015,
+        "thermal_dose": 2.698,
+        "worst_droop": 0.753
+      },
+      "steady_peak_c": 71.085,
+      "thermal_dose_c_s": 13.49,
+      "thermal_pdn_distance_cells": 8.944,
+      "time_above_threshold_s": 12.2,
+      "transient_max_peak_c": 73.003,
+      "worst_droop_mv": 41.438
+    }
+  ],
+  "recommended_intervention": "spread_sram",
+  "recommended_label": "Spread SRAM",
+  "scenario_name": "kv_cache_design_review",
+  "schema_version": "chip_heat_lab.design_review.v1",
+  "warnings": [
+    "design_review_composes_simplified_demo_models_not_final_verification",
+    "cost_score_is_a_demo_tradeoff_proxy"
+  ]
+}

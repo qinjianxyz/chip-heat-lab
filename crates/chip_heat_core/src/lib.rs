@@ -210,6 +210,113 @@ pub struct PowerDeliveryProxyResult {
     pub warnings: Vec<String>,
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DesignIntervention {
+    Baseline,
+    SpreadSram,
+    DensePowerBumps,
+    AggressiveCooling,
+    StaggeredWorkload,
+    SpreadSramDenseBumps,
+    SpreadSramDenseBumpsStaggered,
+}
+
+const DESIGN_REVIEW_CANDIDATES: [DesignIntervention; 6] = [
+    DesignIntervention::SpreadSram,
+    DesignIntervention::DensePowerBumps,
+    DesignIntervention::AggressiveCooling,
+    DesignIntervention::StaggeredWorkload,
+    DesignIntervention::SpreadSramDenseBumps,
+    DesignIntervention::SpreadSramDenseBumpsStaggered,
+];
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct DesignReviewInput {
+    pub scenario_name: String,
+    pub ambient_c: f64,
+    pub conductivity: f64,
+    pub baseline_controls: SimulationControls,
+    pub baseline_bump_preset: PowerBumpPreset,
+    pub peak_limit_c: f64,
+    pub droop_limit_mv: f64,
+    pub thermal_dose_limit_c_s: f64,
+    pub overlap_limit: f64,
+    pub transient_risk_threshold_c: f64,
+    pub thermal_capacitance: f64,
+    pub time_step_s: f64,
+}
+
+impl Default for DesignReviewInput {
+    fn default() -> Self {
+        Self {
+            scenario_name: "kv_cache_design_review".to_string(),
+            ambient_c: 35.0,
+            conductivity: 0.62,
+            baseline_controls: SimulationControls {
+                workload_phase: WorkloadPhase::InferenceKv,
+                power_scale: 1.0,
+                cooling_preset: CoolingPreset::Airflow,
+                floorplan_mode: FloorplanMode::ClusteredSram,
+            },
+            baseline_bump_preset: PowerBumpPreset::Nominal,
+            peak_limit_c: 70.0,
+            droop_limit_mv: 55.0,
+            thermal_dose_limit_c_s: 5.0,
+            overlap_limit: 1.0,
+            transient_risk_threshold_c: 70.0,
+            thermal_capacitance: 0.45,
+            time_step_s: 0.10,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct DesignRiskUtilization {
+    pub steady_peak: f64,
+    pub thermal_dose: f64,
+    pub worst_droop: f64,
+    pub overlap: f64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct DesignCandidateResult {
+    pub intervention: DesignIntervention,
+    pub label: String,
+    pub controls: SimulationControls,
+    pub bump_preset: PowerBumpPreset,
+    pub steady_peak_c: f64,
+    pub transient_max_peak_c: f64,
+    pub time_above_threshold_s: f64,
+    pub thermal_dose_c_s: f64,
+    pub max_gradient_c_per_cell: f64,
+    pub hotspot_path_distance_cells: f64,
+    pub worst_droop_mv: f64,
+    pub thermal_pdn_distance_cells: f64,
+    pub overlap_score: f64,
+    pub risk_utilization: DesignRiskUtilization,
+    pub cost_score: f64,
+    pub constraint_violations: Vec<String>,
+    pub pass: bool,
+    pub rank_score: f64,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct DesignReviewResult {
+    pub scenario_name: String,
+    pub design_question: String,
+    pub baseline: DesignCandidateResult,
+    pub ranked_candidates: Vec<DesignCandidateResult>,
+    pub recommended_intervention: DesignIntervention,
+    pub recommended_label: String,
+    pub pareto_frontier: Vec<DesignIntervention>,
+    pub constraints: BTreeMap<String, f64>,
+    pub warnings: Vec<String>,
+    pub non_claim: String,
+    pub pass: bool,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
 pub struct WorkloadSegment {
     pub label: String,
@@ -324,6 +431,17 @@ pub fn default_workload_trace() -> Vec<WorkloadSegment> {
     ]
 }
 
+pub fn staggered_workload_trace() -> Vec<WorkloadSegment> {
+    vec![
+        segment("prefill_burst_a", WorkloadPhase::TrainingMatmul, 4.0, 1.08),
+        segment("kv_decode_a", WorkloadPhase::InferenceKv, 13.0, 0.98),
+        segment("prefill_burst_b", WorkloadPhase::TrainingMatmul, 4.0, 1.08),
+        segment("kv_decode_b", WorkloadPhase::InferenceKv, 17.0, 0.98),
+        segment("io_flush", WorkloadPhase::IoBurst, 4.0, 1.00),
+        segment("kv_decode_tail", WorkloadPhase::InferenceKv, 12.0, 0.90),
+    ]
+}
+
 pub fn solve(input: &ScenarioInput) -> SimulationResult {
     let controls = input.controls.clone();
     let floorplan = flagship_floorplan(
@@ -362,6 +480,50 @@ pub fn solve(input: &ScenarioInput) -> SimulationResult {
         residual,
         iterations,
         warnings,
+    }
+}
+
+pub fn solve_design_review(input: &DesignReviewInput) -> DesignReviewResult {
+    let baseline = evaluate_design_candidate(input, DesignIntervention::Baseline);
+    let mut ranked_candidates = DESIGN_REVIEW_CANDIDATES
+        .into_iter()
+        .map(|intervention| evaluate_design_candidate(input, intervention))
+        .collect::<Vec<_>>();
+    ranked_candidates.sort_by(compare_design_candidates);
+
+    let recommended = ranked_candidates
+        .iter()
+        .find(|candidate| candidate.pass)
+        .unwrap_or_else(|| ranked_candidates.first().expect("at least one candidate"));
+    let recommended_intervention = recommended.intervention;
+    let recommended_label = recommended.label.clone();
+    let pass = recommended.pass;
+    let pareto_frontier = pareto_frontier(&ranked_candidates);
+
+    let mut constraints = BTreeMap::new();
+    constraints.insert("peak_limit_c".to_string(), input.peak_limit_c);
+    constraints.insert("droop_limit_mv".to_string(), input.droop_limit_mv);
+    constraints.insert(
+        "thermal_dose_limit_c_s".to_string(),
+        input.thermal_dose_limit_c_s,
+    );
+    constraints.insert("overlap_limit".to_string(), input.overlap_limit);
+
+    DesignReviewResult {
+        scenario_name: input.scenario_name.clone(),
+        design_question: "Which lowest-cost intervention makes the KV-cache design review pass the simplified thermal and power-delivery constraints?".to_string(),
+        baseline,
+        ranked_candidates,
+        recommended_intervention,
+        recommended_label,
+        pareto_frontier,
+        constraints,
+        warnings: vec![
+            "design_review_composes_simplified_demo_models_not_final_verification".to_string(),
+            "cost_score_is_a_demo_tradeoff_proxy".to_string(),
+        ],
+        non_claim: "Early-design ranking for this clean-room demo only; not final verification, manufacturing validation, standards compliance, package airflow analysis, or a physical PDN model.".to_string(),
+        pass,
     }
 }
 
@@ -549,6 +711,8 @@ pub fn schema_bundle() -> serde_json::Value {
     serde_json::json!({
         "ScenarioInput": schemars::schema_for!(ScenarioInput),
         "SimulationResult": schemars::schema_for!(SimulationResult),
+        "DesignReviewInput": schemars::schema_for!(DesignReviewInput),
+        "DesignReviewResult": schemars::schema_for!(DesignReviewResult),
         "PowerDeliveryProxyInput": schemars::schema_for!(PowerDeliveryProxyInput),
         "PowerDeliveryProxyResult": schemars::schema_for!(PowerDeliveryProxyResult),
         "TransientScenarioInput": schemars::schema_for!(TransientScenarioInput),
@@ -628,6 +792,249 @@ fn phase_multiplier(phase: WorkloadPhase, block_name: &str) -> f64 {
     }
 }
 
+fn evaluate_design_candidate(
+    input: &DesignReviewInput,
+    intervention: DesignIntervention,
+) -> DesignCandidateResult {
+    let controls = intervention_controls(input.baseline_controls.clone(), intervention);
+    let bump_preset = intervention_bump_preset(input.baseline_bump_preset, intervention);
+    let segments = if intervention_uses_staggered_workload(intervention) {
+        staggered_workload_trace()
+    } else {
+        default_workload_trace()
+    };
+
+    let steady = solve(&ScenarioInput {
+        scenario_name: format!("{}_steady_{:?}", input.scenario_name, intervention),
+        ambient_c: input.ambient_c,
+        conductivity: input.conductivity,
+        controls: controls.clone(),
+    });
+    let transient = solve_transient(&TransientScenarioInput {
+        scenario_name: format!("{}_transient_{:?}", input.scenario_name, intervention),
+        ambient_c: input.ambient_c,
+        conductivity: input.conductivity,
+        cooling_preset: controls.cooling_preset,
+        floorplan_mode: controls.floorplan_mode,
+        thermal_capacitance: input.thermal_capacitance,
+        time_step_s: input.time_step_s,
+        risk_threshold_c: input.transient_risk_threshold_c,
+        sample_interval_s: 1.0,
+        segments,
+    });
+    let power = solve_power_delivery_proxy(&PowerDeliveryProxyInput {
+        scenario_name: format!("{}_power_{:?}", input.scenario_name, intervention),
+        controls: controls.clone(),
+        bump_preset,
+        ..PowerDeliveryProxyInput::default()
+    });
+
+    let mut constraint_violations = Vec::new();
+    if steady.peak_c > input.peak_limit_c {
+        constraint_violations.push("steady_kv_peak_above_limit".to_string());
+    }
+    if transient.metrics.thermal_dose_c_s > input.thermal_dose_limit_c_s {
+        constraint_violations.push("transient_thermal_dose_above_limit".to_string());
+    }
+    if power.worst_droop_mv > input.droop_limit_mv {
+        constraint_violations.push("power_delivery_droop_above_limit".to_string());
+    }
+    if power.overlap_score > input.overlap_limit {
+        constraint_violations.push("thermal_droop_overlap_above_limit".to_string());
+    }
+
+    let risk_utilization = DesignRiskUtilization {
+        steady_peak: round3(steady.peak_c / input.peak_limit_c.max(1.0e-9)),
+        thermal_dose: round3(
+            transient.metrics.thermal_dose_c_s / input.thermal_dose_limit_c_s.max(1.0e-9),
+        ),
+        worst_droop: round3(power.worst_droop_mv / input.droop_limit_mv.max(1.0e-9)),
+        overlap: round3(power.overlap_score / input.overlap_limit.max(1.0e-9)),
+    };
+    let pass = constraint_violations.is_empty();
+    let cost_score = intervention_cost(intervention);
+    let rank_score = design_rank_score(
+        pass,
+        cost_score,
+        steady.peak_c,
+        transient.metrics.thermal_dose_c_s,
+        power.worst_droop_mv,
+    );
+    let reason = design_candidate_reason(
+        intervention,
+        pass,
+        steady.peak_c,
+        transient.metrics.thermal_dose_c_s,
+        power.worst_droop_mv,
+        &constraint_violations,
+    );
+
+    DesignCandidateResult {
+        intervention,
+        label: intervention_label(intervention).to_string(),
+        controls,
+        bump_preset,
+        steady_peak_c: round3(steady.peak_c),
+        transient_max_peak_c: round3(transient.metrics.max_peak_c),
+        time_above_threshold_s: round3(transient.metrics.time_above_threshold_s),
+        thermal_dose_c_s: round3(transient.metrics.thermal_dose_c_s),
+        max_gradient_c_per_cell: round3(transient.metrics.max_gradient_c_per_cell),
+        hotspot_path_distance_cells: round3(transient.metrics.hotspot_path_distance_cells),
+        worst_droop_mv: round3(power.worst_droop_mv),
+        thermal_pdn_distance_cells: round3(power.hotspot_distance_cells),
+        overlap_score: round3(power.overlap_score),
+        risk_utilization,
+        cost_score,
+        constraint_violations,
+        pass,
+        rank_score: round3(rank_score),
+        reason,
+    }
+}
+
+fn intervention_controls(
+    mut controls: SimulationControls,
+    intervention: DesignIntervention,
+) -> SimulationControls {
+    match intervention {
+        DesignIntervention::SpreadSram
+        | DesignIntervention::SpreadSramDenseBumps
+        | DesignIntervention::SpreadSramDenseBumpsStaggered => {
+            controls.floorplan_mode = FloorplanMode::SpreadSram;
+        }
+        _ => {}
+    }
+
+    if intervention == DesignIntervention::AggressiveCooling {
+        controls.cooling_preset = CoolingPreset::Aggressive;
+    }
+    controls
+}
+
+fn intervention_bump_preset(
+    baseline: PowerBumpPreset,
+    intervention: DesignIntervention,
+) -> PowerBumpPreset {
+    match intervention {
+        DesignIntervention::DensePowerBumps
+        | DesignIntervention::SpreadSramDenseBumps
+        | DesignIntervention::SpreadSramDenseBumpsStaggered => PowerBumpPreset::Dense,
+        _ => baseline,
+    }
+}
+
+fn intervention_uses_staggered_workload(intervention: DesignIntervention) -> bool {
+    matches!(
+        intervention,
+        DesignIntervention::StaggeredWorkload | DesignIntervention::SpreadSramDenseBumpsStaggered
+    )
+}
+
+fn intervention_cost(intervention: DesignIntervention) -> f64 {
+    match intervention {
+        DesignIntervention::Baseline => 0.0,
+        DesignIntervention::StaggeredWorkload => 1.2,
+        DesignIntervention::SpreadSram => 2.0,
+        DesignIntervention::DensePowerBumps => 2.5,
+        DesignIntervention::AggressiveCooling => 4.0,
+        DesignIntervention::SpreadSramDenseBumps => 4.5,
+        DesignIntervention::SpreadSramDenseBumpsStaggered => 5.7,
+    }
+}
+
+fn intervention_label(intervention: DesignIntervention) -> &'static str {
+    match intervention {
+        DesignIntervention::Baseline => "Baseline clustered SRAM",
+        DesignIntervention::SpreadSram => "Spread SRAM",
+        DesignIntervention::DensePowerBumps => "Dense power bumps",
+        DesignIntervention::AggressiveCooling => "Aggressive cooling",
+        DesignIntervention::StaggeredWorkload => "Stagger workload",
+        DesignIntervention::SpreadSramDenseBumps => "Spread SRAM + dense bumps",
+        DesignIntervention::SpreadSramDenseBumpsStaggered => {
+            "Spread SRAM + dense bumps + stagger workload"
+        }
+    }
+}
+
+fn design_rank_score(
+    pass: bool,
+    cost_score: f64,
+    steady_peak_c: f64,
+    thermal_dose_c_s: f64,
+    worst_droop_mv: f64,
+) -> f64 {
+    let violation_penalty = if pass { 0.0 } else { 1_000.0 };
+    violation_penalty
+        + cost_score * 10.0
+        + steady_peak_c
+        + thermal_dose_c_s * 0.8
+        + worst_droop_mv * 0.35
+}
+
+fn design_candidate_reason(
+    intervention: DesignIntervention,
+    pass: bool,
+    steady_peak_c: f64,
+    thermal_dose_c_s: f64,
+    worst_droop_mv: f64,
+    violations: &[String],
+) -> String {
+    if pass {
+        return format!(
+            "{} passes the simplified constraints with {:.1} C steady KV peak, {:.1} C-s thermal dose, and {:.1} mV worst droop.",
+            intervention_label(intervention),
+            steady_peak_c,
+            thermal_dose_c_s,
+            worst_droop_mv
+        );
+    }
+    format!(
+        "{} still violates {} with {:.1} C steady KV peak, {:.1} C-s thermal dose, and {:.1} mV worst droop.",
+        intervention_label(intervention),
+        violations.join(", "),
+        steady_peak_c,
+        thermal_dose_c_s,
+        worst_droop_mv
+    )
+}
+
+fn compare_design_candidates(
+    left: &DesignCandidateResult,
+    right: &DesignCandidateResult,
+) -> std::cmp::Ordering {
+    left.rank_score
+        .total_cmp(&right.rank_score)
+        .then_with(|| left.cost_score.total_cmp(&right.cost_score))
+        .then_with(|| left.label.cmp(&right.label))
+}
+
+fn pareto_frontier(candidates: &[DesignCandidateResult]) -> Vec<DesignIntervention> {
+    candidates
+        .iter()
+        .filter(|candidate| {
+            !candidates.iter().any(|other| {
+                other.intervention != candidate.intervention && dominates(other, candidate)
+            })
+        })
+        .map(|candidate| candidate.intervention)
+        .collect()
+}
+
+fn dominates(left: &DesignCandidateResult, right: &DesignCandidateResult) -> bool {
+    let dimensions = [
+        (left.steady_peak_c, right.steady_peak_c),
+        (left.thermal_dose_c_s, right.thermal_dose_c_s),
+        (left.worst_droop_mv, right.worst_droop_mv),
+        (left.cost_score, right.cost_score),
+    ];
+    dimensions
+        .iter()
+        .all(|(left_value, right_value)| left_value <= &(right_value + 1.0e-9))
+        && dimensions
+            .iter()
+            .any(|(left_value, right_value)| left_value < &(right_value - 1.0e-9))
+}
+
 fn cooling_coefficient(preset: CoolingPreset) -> f64 {
     match preset {
         CoolingPreset::Passive => 0.018,
@@ -677,6 +1084,7 @@ fn solve_voltage_droop(
 
     let tolerance = 1.0e-8;
     let max_iterations = 18_000;
+    let relaxation = 1.72;
     let mut iterations = 0;
     let mut converged = false;
 
@@ -686,7 +1094,9 @@ fn solve_voltage_droop(
             for x in 0..GRID_SIZE {
                 let cell = idx(x, y);
                 let denom = 4.0 * sheet_conductance + bump_grid[cell];
-                let next = (current[cell] + sheet_conductance * neighbor_sum(&droop, x, y)) / denom;
+                let gauss_seidel =
+                    (current[cell] + sheet_conductance * neighbor_sum(&droop, x, y)) / denom;
+                let next = droop[cell] + relaxation * (gauss_seidel - droop[cell]);
                 max_delta = max_delta.max((next - droop[cell]).abs());
                 droop[cell] = next;
             }
@@ -1135,5 +1545,67 @@ mod tests {
             spread.frames.last().unwrap().hotspot_centroid
         );
         assert!(spread.metrics.max_peak_c <= clustered.metrics.max_peak_c + 3.0);
+    }
+
+    #[test]
+    fn design_review_recommends_lowest_cost_passing_intervention() {
+        let review = solve_design_review(&DesignReviewInput::default());
+        assert!(!review.baseline.pass);
+        assert_eq!(
+            review.recommended_intervention,
+            DesignIntervention::SpreadSram
+        );
+        assert_eq!(
+            review.ranked_candidates.first().unwrap().intervention,
+            DesignIntervention::SpreadSram
+        );
+        assert!(review.pass);
+        assert!(review
+            .baseline
+            .constraint_violations
+            .contains(&"power_delivery_droop_above_limit".to_string()));
+        assert!(review
+            .ranked_candidates
+            .first()
+            .unwrap()
+            .constraint_violations
+            .is_empty());
+    }
+
+    #[test]
+    fn design_review_schema_roundtrip() {
+        let input = DesignReviewInput::default();
+        let input_json = serde_json::to_string(&input).unwrap();
+        let decoded: DesignReviewInput = serde_json::from_str(&input_json).unwrap();
+        assert_eq!(decoded, input);
+
+        let schema = schema_bundle();
+        assert!(schema.get("DesignReviewInput").is_some());
+        assert!(schema.get("DesignReviewResult").is_some());
+    }
+
+    #[test]
+    fn design_review_ranking_is_deterministic_and_conservative() {
+        let first = solve_design_review(&DesignReviewInput::default());
+        let second = solve_design_review(&DesignReviewInput::default());
+        let first_order = first
+            .ranked_candidates
+            .iter()
+            .map(|candidate| candidate.intervention)
+            .collect::<Vec<_>>();
+        let second_order = second
+            .ranked_candidates
+            .iter()
+            .map(|candidate| candidate.intervention)
+            .collect::<Vec<_>>();
+
+        assert_eq!(first_order, second_order);
+        assert!(first
+            .ranked_candidates
+            .windows(2)
+            .all(|pair| compare_design_candidates(&pair[0], &pair[1]).is_le()));
+        assert!(first.non_claim.contains("Early-design ranking"));
+        assert!(first.non_claim.contains("not final verification"));
+        assert!(!first.non_claim.contains("production verification tool"));
     }
 }

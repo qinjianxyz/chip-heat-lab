@@ -1,6 +1,13 @@
 # Model
 
-Chip Heat Lab solves one simplified 2D steady-state hotspot model:
+Chip Heat Lab has one locked demo model family. It is not a broad simulator; it
+is a small design-review workflow over one stylized AI accelerator floorplan.
+Rust owns each computed signal, and the app/site present those outputs as an
+inspectable review artifact.
+
+## Steady Thermal Model
+
+The base model is a simplified 2D steady-state hotspot solve:
 
 ```text
 -k * laplacian(T) + g_cool * (T - T_ambient) = q(x, y)
@@ -82,3 +89,63 @@ This is useful for early workflow intuition because it shows that the same
 floorplan and workload can create both a thermal concern and a power-delivery
 stress proxy. The bump presets are intentionally simple: sparse, nominal, and
 dense.
+
+## Design Review Composition
+
+The flagship workflow composes the three Rust-owned outputs into one ranked
+review:
+
+```text
+candidate design
+  -> steady KV thermal peak
+  -> transient thermal dose over a workload trace
+  -> power-delivery proxy worst droop
+  -> constraint check + demo cost score
+  -> ranked intervention recommendation
+```
+
+The default review compares:
+
+- baseline clustered SRAM, nominal bumps, nominal cooling;
+- spread SRAM;
+- dense power bumps;
+- aggressive cooling;
+- workload staggering;
+- combined spread-SRAM and dense-bump interventions.
+
+The default constraints are intentionally simple demo gates:
+
+- steady KV peak below `70 C`;
+- transient thermal dose below `5 C-s`;
+- worst droop below `55 mV`;
+- overlap score below or equal to `1.0`.
+
+This composition is useful because it moves the demo from "look at a heatmap"
+to "which design change should I inspect first?" The review intentionally
+includes single-knob candidates that solve only part of the problem:
+
+- workload staggering can remove transient dose while leaving steady peak and
+  droop proxy risk unchanged;
+- aggressive cooling can reduce thermal metrics while leaving the droop proxy
+  unchanged;
+- dense power bumps can reduce the droop proxy while leaving thermal metrics
+  unchanged;
+- spreading SRAM changes the shared spatial power map and can improve all three
+  simplified primary gates in this scenario.
+
+The answer is still bounded by the non-claims: the ranking is deterministic and
+inspectable, but it is not final verification, validation, package airflow, or a
+physical PDN result.
+
+## Knowledge And Process Binding
+
+The model is paired with two repo-visible control systems:
+
+- **GBrain-ready KB:** `kb/**/*.md` records assumptions, references, demo
+  explanations, and claim boundaries. `scripts/generate_kb_index.py` turns those
+  files into `kb_index.json` for the app and site, so explanations can be tied
+  to source files instead of invented during the demo.
+- **GStack artifacts:** `docs/gstack/` records the scope lock, engineering
+  review, design review, QA plan, ship checklist, canary, and retro. The process
+  artifact matters because it explains why the demo chose one ranked
+  design-review workflow instead of chasing multiple unverified physics lanes.
