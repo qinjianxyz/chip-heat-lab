@@ -22,12 +22,12 @@ struct ContentView: View {
             Divider()
             HStack(spacing: 0) {
                 leftPane
-                    .frame(width: 320)
+                    .frame(width: 370)
                 Divider()
                 heatmapPane
                 Divider()
                 rightPane
-                    .frame(width: 340)
+                    .frame(width: 390)
             }
         }
         .task {
@@ -67,12 +67,18 @@ struct ContentView: View {
                 .font(.title3)
                 .bold()
 
-            Picker("Workload", selection: binding(\.workloadPhase)) {
-                ForEach(WorkloadPhase.allCases) { phase in
-                    Text(phase.label).tag(phase)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Workload")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: binding(\.workloadPhase)) {
+                    ForEach(WorkloadPhase.allCases) { phase in
+                        Text(phase.label).tag(phase)
+                    }
                 }
+                .labelsHidden()
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
             VStack(alignment: .leading) {
                 Text("Power Scale \(controls.powerScale, specifier: "%.2f")")
@@ -80,19 +86,31 @@ struct ContentView: View {
                 Slider(value: binding(\.powerScale), in: 0...2.2, step: 0.1)
             }
 
-            Picker("Cooling", selection: binding(\.coolingPreset)) {
-                ForEach(CoolingPreset.allCases) { preset in
-                    Text(preset.label).tag(preset)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Cooling")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: binding(\.coolingPreset)) {
+                    ForEach(CoolingPreset.allCases) { preset in
+                        Text(preset.label).tag(preset)
+                    }
                 }
+                .labelsHidden()
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
-            Picker("Floorplan", selection: binding(\.floorplanMode)) {
-                ForEach(FloorplanMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Floorplan")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: binding(\.floorplanMode)) {
+                    ForEach(FloorplanMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
                 }
+                .labelsHidden()
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
             if let result {
                 VStack(alignment: .leading, spacing: 8) {
@@ -176,6 +194,7 @@ struct ContentView: View {
                 .font(.headline)
             Text("For a KV-cache-heavy workload, does spreading SRAM reduce the hotspot before changing the cooling budget?")
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             if let comparison = designComparison {
                 HStack(spacing: 10) {
@@ -186,6 +205,7 @@ struct ContentView: View {
                 Text(comparison.recommendation)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("Run the simulation to compute the layout comparison.")
                     .font(.caption)

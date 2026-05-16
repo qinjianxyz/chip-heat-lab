@@ -38,10 +38,11 @@ final class RustRunner {
             try process.run()
             stdin.fileHandleForWriting.write(payload)
             try stdin.fileHandleForWriting.close()
-            process.waitUntilExit()
 
             let output = stdout.fileHandleForReading.readDataToEndOfFile()
             let errorOutput = stderr.fileHandleForReading.readDataToEndOfFile()
+            process.waitUntilExit()
+
             if process.terminationStatus != 0 {
                 let stderrText = String(data: errorOutput, encoding: .utf8) ?? ""
                 throw RustRunnerError.processFailed(process.terminationStatus, stderrText)

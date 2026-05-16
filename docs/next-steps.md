@@ -1,8 +1,12 @@
 # Next Steps
 
 Current state: foundation demo is public, tested, CI-backed, and has a
-deterministic value-loop benchmark. The next work should focus on review,
-packaging, recording, and deployment rather than expanding physics scope.
+deterministic value-loop benchmark. PR #1 merged the benchmark on 2026-05-16.
+Commander QA also found and fixed two demo-readiness issues: the local Next dev
+server now handles Node 25 localStorage behavior, and the local macOS bundle
+launch path opens a visible app window without leaking Rust CLI child
+processes. The next work should focus on recording and deployment rather than
+expanding physics scope.
 
 ## P0 Before Submission
 
@@ -12,6 +16,8 @@ packaging, recording, and deployment rather than expanding physics scope.
 4. Add the Vercel URL and video URL to `README.md`.
 5. Do one visual polish pass after watching the recording.
 6. Add a release zip for the unsigned local `dist/ChipHeatLab.app` bundle.
+7. Re-run native bundle QA immediately before recording:
+   `bash scripts/bundle_macos_app.sh && open dist/ChipHeatLab.app`.
 
 ## P1 Polish
 
@@ -21,6 +27,8 @@ packaging, recording, and deployment rather than expanding physics scope.
 3. Add a release zip for the unsigned local app bundle.
 4. Re-run `bash scripts/run_value_benchmark.sh` after any model/control change
    and commit the updated result if the output changes.
+5. Replace the unsigned local bundle with a signed/notarized artifact only if
+   time permits; do not block the hackathon demo on notarization.
 
 ## Explicitly Out of Scope
 
