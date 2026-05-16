@@ -5,6 +5,7 @@ Chip Heat Lab has one execution path:
 ```text
 ScenarioInput JSON -> Rust CLI -> SimulationResult JSON -> SwiftUI app and site replay
 TransientScenarioInput JSON -> Rust CLI --transient -> TransientSimulationResult JSON -> benchmark/site
+PowerDeliveryProxyInput JSON -> Rust CLI --power-proxy -> PowerDeliveryProxyResult JSON -> benchmark/site
 kb/*.md -> scripts/generate_kb_index.py -> app/site knowledge JSON
 ```
 
@@ -17,8 +18,8 @@ same CLI.
 ## Components
 
 - `crates/chip_heat_core`: data contracts, 96x96 floorplan, power map, iterative
-  finite-difference solve, transient workload trace solve, JSON schema
-  generation, and tests.
+  finite-difference solve, transient workload trace solve, power-delivery proxy,
+  JSON schema generation, and tests.
 - `crates/chip_heat_cli`: command-line JSON wrapper around the core.
 - `apps/macos/ChipHeatLab`: SwiftUI shell with floorplan, heatmap, controls,
   peak readout, hotspot movement, per-block table, and explanation panel.
@@ -40,6 +41,13 @@ mode, thermal capacitance, timestep, and risk threshold.
 
 `TransientSimulationResult` contains sampled frames, the final temperature grid,
 and risk metrics used by the transient value-loop benchmark.
+
+`PowerDeliveryProxyInput` contains the same controls plus a power bump preset
+and demo conductance parameters.
+
+`PowerDeliveryProxyResult` contains the droop grid, worst droop, per-block worst
+droop, thermal peak reference, hotspot distance, overlap score, residual,
+iteration count, warnings, and idealized bump coordinates.
 
 `kb_index.json` contains normalized markdown frontmatter and summaries. The
 macOS app uses it for the explanation panel, and the site uses it for the

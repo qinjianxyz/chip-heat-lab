@@ -7,8 +7,9 @@ AI accelerator floorplan. A Rust CLI solves fixed 96x96 steady and transient
 thermal hotspot models, a macOS SwiftUI app runs the steady CLI path through
 stdin/stdout JSON, and a Next.js site replays exported solver snapshots and
 benchmark results. The project is intentionally small: it helps a viewer build
-intuition about how workload, power, cooling, SRAM placement, and burst
-scheduling can change hotspot risk in an early concept model.
+intuition about how workload, power, cooling, SRAM placement, burst scheduling,
+and a simple power-delivery proxy can change early design risk in one concept
+model.
 
 ## Links
 
@@ -27,7 +28,8 @@ scheduling can change hotspot risk in an early concept model.
 4. Increase cooling and watch the peak temperature drop.
 5. Open the explanation panel and show the assumptions and non-claims.
 6. Open the public site replay to show the same Rust-exported snapshots.
-7. Open the knowledge page to show the GBrain-ready assumption system.
+7. Show the transient and power-delivery proxy benchmarks on the site.
+8. Open the knowledge page to show the GBrain-ready assumption system.
 
 ## Review Now
 
@@ -70,6 +72,7 @@ cargo test --quiet
 cargo run --quiet -p chip_heat_cli -- --input scenarios/flagship.json
 bash scripts/run_value_benchmark.sh
 bash scripts/run_transient_value_benchmark.sh
+bash scripts/run_power_delivery_benchmark.sh
 python3 scripts/generate_kb_index.py
 bash scripts/export_snapshots.sh
 bash scripts/visual_smoke_test.sh
@@ -114,6 +117,23 @@ baseline trace reaches `72.939 C`, spends `12.100 s` over the demo threshold,
 and accumulates `13.189 C-s` of thermal dose. Stronger cooling is the top-ranked
 intervention in this simplified model, while workload staggering removes the
 same over-threshold dose without changing the floorplan or cooling preset.
+
+## Power Delivery Proxy Benchmark
+
+The power-delivery proxy benchmark asks one adjacent hardware question: for the
+same floorplan and power map, do bump density and SRAM placement change the
+simplified droop stress proxy?
+
+```bash
+bash scripts/run_power_delivery_benchmark.sh
+```
+
+The script drives the Rust CLI in `--power-proxy` mode and writes
+`benchmarks/power_delivery_proxy/results.json`. In the checked-in result,
+nominal KV clustered SRAM has `67.534 mV` worst droop, dense bumps reduce that
+to `41.438 mV`, and spread SRAM with nominal bumps reduces it to `50.124 mV`.
+The thermal/droop hotspot overlap score is `0.869` for the nominal clustered
+case. This is usefulness proof for the demo loop, not a physical PDN model.
 
 ## Site
 

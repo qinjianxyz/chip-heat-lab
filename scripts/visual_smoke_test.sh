@@ -56,8 +56,8 @@ check_page() {
   done
 }
 
-check_page "/" "Transient Review" "Value Benchmark" "Inspectable Build System"
-check_page "/knowledge" "Knowledge Base" "Transient Value Loop" "GBrain-ready knowledge system"
+check_page "/" "Transient Review" "Value Benchmark" "Power Delivery Proxy" "Inspectable Build System"
+check_page "/knowledge" "Knowledge Base" "Transient Value Loop" "Power Delivery Proxy" "GBrain-ready knowledge system"
 check_page "/replay?snapshot=inference_spread" "inference_spread" "Replay"
 
 find_chrome() {

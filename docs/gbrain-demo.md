@@ -25,6 +25,8 @@ Example queries to run during a demo:
 - "What is the benchmark's non-claim?"
 - "What does the transient value-loop benchmark compare?"
 - "Why does workload staggering reduce thermal risk in the demo?"
+- "What does the power-delivery proxy compare?"
+- "Do thermal and droop hotspots overlap in the benchmark?"
 
 No transcript is included here because query output depends on the local GBrain
 installation and should be captured only after the commands are actually run.
@@ -42,3 +44,15 @@ Try: gbrain init --migrate-only
 The wrapper also returned mostly `No results.` for the demo queries. Until the
 local GBrain store is migrated and re-imported, use the markdown KB files and
 generated `kb_index.json` as the benchmark explanation fallback.
+
+Later on 2026-05-16, after adding the power-delivery proxy KB page, the same
+wrapper started the first query but did not complete within the interactive
+review window. The only emitted line was:
+
+```text
+[ai.gateway] recipe "google" declares an embedding touchpoint without max_batch_tokens; recursion is the only safety net for batch caps.
+```
+
+No successful transcript is recorded from that run. The source of truth remains
+the markdown KB plus generated app/site index until local GBrain query health is
+repaired.
