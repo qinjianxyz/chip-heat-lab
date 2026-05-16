@@ -5,18 +5,18 @@ deterministic value-loop benchmark. PR #1 merged the benchmark on 2026-05-16.
 Commander QA also found and fixed two demo-readiness issues: the local Next dev
 server now handles Node 25 localStorage behavior, and the local macOS bundle
 launch path opens a visible app window without leaking Rust CLI child
-processes. The next work should focus on recording and deployment rather than
+processes. The Vercel site is deployed at <https://chip-heat-lab.vercel.app>.
+The next work should focus on recording and submission packaging rather than
 expanding physics scope.
 
 ## P0 Before Submission
 
-1. Deploy the `site/` directory to Vercel.
-2. Record the 90-second demo video from the native app.
-3. Include the value benchmark result in the submission copy.
-4. Add the Vercel URL and video URL to `README.md`.
-5. Do one visual polish pass after watching the recording.
-6. Add a release zip for the unsigned local `dist/ChipHeatLab.app` bundle.
-7. Re-run native bundle QA immediately before recording:
+1. Record the 90-second demo video from the native app.
+2. Include the value benchmark result in the submission copy.
+3. Add the demo video URL to `README.md`.
+4. Do one visual polish pass after watching the recording.
+5. Add a release zip for the unsigned local `dist/ChipHeatLab.app` bundle.
+6. Re-run native bundle QA immediately before recording:
    `bash scripts/bundle_macos_app.sh && open dist/ChipHeatLab.app`.
 
 ## P1 Polish

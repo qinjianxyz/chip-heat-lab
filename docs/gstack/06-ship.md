@@ -18,6 +18,9 @@ Ship only after:
   Rust JSON exchange completes.
 - `scripts/run_site_demo.sh` returns HTTP 200 for `/` and `/replay` in the local
   review environment.
+- The production Vercel deployment returns HTTP 200 for
+  <https://chip-heat-lab.vercel.app> and
+  <https://chip-heat-lab.vercel.app/replay>.
 
 ## Release Notes
 
@@ -33,3 +36,5 @@ signing, archive export, and demo video capture are post-build packaging steps.
   window and hardened the app entry point for local recording.
 - Commander QA found the Swift/Rust subprocess path could leave long-lived Rust
   CLI children and fixed the stdout drain order before waiting for process exit.
+- Vercel production deployment is live at
+  <https://chip-heat-lab.vercel.app>.
