@@ -10,3 +10,4 @@ gbrain query "What assumptions does Chip Heat Lab make?" --source chip-heat-lab
 gbrain query "What should I not claim from the heatmap?" --source chip-heat-lab
 gbrain query "Why does spreading SRAM change the hotspot?" --source chip-heat-lab
 gbrain query "How does the cooling preset affect the simplified model?" --source chip-heat-lab
+gbrain query "What does the transient value-loop benchmark compare?" --source chip-heat-lab

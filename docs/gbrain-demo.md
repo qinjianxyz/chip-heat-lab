@@ -23,6 +23,8 @@ Example queries to run during a demo:
 - "What does the value-loop benchmark prove?"
 - "How much did spread SRAM change the KV workload peak?"
 - "What is the benchmark's non-claim?"
+- "What does the transient value-loop benchmark compare?"
+- "Why does workload staggering reduce thermal risk in the demo?"
 
 No transcript is included here because query output depends on the local GBrain
 installation and should be captured only after the commands are actually run.

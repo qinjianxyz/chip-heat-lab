@@ -8,12 +8,14 @@ launch path opens a visible app window without leaking Rust CLI child
 processes. The Vercel site is deployed at <https://chip-heat-lab.vercel.app>.
 The unsigned macOS preview archive is attached to
 <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>.
-The next work should focus on recording and submission packaging rather than
-expanding physics scope.
+The next work should merge and redeploy the transient value-loop and knowledge
+page upgrade, then decide whether one adjacent power-delivery proxy is worth
+adding before recording.
 
 ## P0 Before Submission
 
-1. Record the 90-second demo video from the native app.
+1. Record the final demo video after the transient value-loop upgrade is merged
+   and redeployed.
 2. Founder-review `docs/submission-copy.md` and paste the approved version into
    the submission form.
 3. Add the demo video URL to `README.md`.
@@ -24,16 +26,20 @@ expanding physics scope.
 ## P1 Polish
 
 1. Add screenshots to the README and Vercel landing page.
-2. Add a tiny `docs/gbrain-demo.md` receipt with real query output after
+2. Add one bounded power-delivery proxy only if the current value demo is
+   already green: use the same floorplan/power map, compute a simplified
+   IR-drop stress map in Rust, and show whether droop hotspots overlap thermal
+   hotspots. Do not add a second broad product lane.
+3. Add a tiny `docs/gbrain-demo.md` receipt with real query output after
    running the import locally.
-3. Replace the unsigned local bundle with a signed/notarized artifact only if
+4. Replace the unsigned local bundle with a signed/notarized artifact only if
    time permits; do not block the hackathon demo on notarization.
-4. Re-run `bash scripts/run_value_benchmark.sh` after any model/control change
-   and commit the updated result if the output changes.
+5. Re-run value and transient benchmarks after any model/control change and
+   commit the updated result if the output changes.
 
 ## Explicitly Out of Scope
 
-- More physics models before the end-to-end value demo is recorded.
+- Broad multiphysics expansion before the end-to-end value demo is recorded.
 - FFI between Swift and Rust.
 - RTL/OpenROAD integration.
 - Production thermal-validation claims.

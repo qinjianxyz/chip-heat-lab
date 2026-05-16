@@ -3,9 +3,24 @@ import { Heatmap } from "../../components/Heatmap";
 import { loadSnapshots } from "../../lib/snapshots";
 import { loadValueBenchmark } from "../../lib/valueBenchmark";
 
-export default function ReplayPage() {
+type ReplayPageProps = {
+  searchParams?: Promise<{
+    snapshot?: string | string[];
+  }>;
+};
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function ReplayPage({ searchParams }: ReplayPageProps) {
   const snapshots = loadSnapshots();
-  const selected = snapshots[0];
+  const params = searchParams ? await searchParams : {};
+  const requested = firstParam(params.snapshot);
+  const selected =
+    snapshots.find(({ name }) => name === requested) ??
+    snapshots.find(({ name }) => name === "balanced") ??
+    snapshots[0];
   const benchmark = loadValueBenchmark();
   const kv = benchmark?.comparisons.kv_sram_floorplan_intervention;
 
@@ -28,10 +43,17 @@ export default function ReplayPage() {
         <div className="replay-grid">
           <div className="snapshot-list">
             {snapshots.map(({ name, snapshot }) => (
-              <Link key={name} href={`/snapshots/${name}.json`}>
+              <Link
+                key={name}
+                className={selected.name === name ? "selected" : ""}
+                href={`/replay?snapshot=${name}`}
+              >
                 <strong>{name}</strong>
                 <br />
-                <span>{snapshot.controls.workload_phase} · {snapshot.controls.cooling_preset}</span>
+                <span>
+                  {snapshot.controls.workload_phase} · {snapshot.controls.cooling_preset} ·{" "}
+                  {snapshot.controls.floorplan_mode}
+                </span>
               </Link>
             ))}
           </div>

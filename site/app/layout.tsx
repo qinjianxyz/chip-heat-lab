@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 const nav = [
   ["Docs", "/docs"],
   ["Model", "/model"],
+  ["Knowledge", "/knowledge"],
   ["Non-Claims", "/non-claims"],
   ["Replay", "/replay"]
 ];

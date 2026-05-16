@@ -41,6 +41,9 @@ bash scripts/export_snapshots.sh
 echo "== value benchmark =="
 bash scripts/run_value_benchmark.sh
 
+echo "== transient value benchmark =="
+bash scripts/run_transient_value_benchmark.sh
+
 echo "== macos resources =="
 bash scripts/prepare_macos_resources.sh
 

@@ -33,3 +33,28 @@ The output is useful for relative visual intuition in this demo: a phase change
 can move the hotspot, stronger cooling can reduce peak temperature, and SRAM
 placement can alter the visible thermal field. The numbers are deterministic for
 the bundled scenario and should be treated as demo units tied to this model.
+
+## Transient Extension
+
+The Rust core also exposes a transient workload-trace mode:
+
+```text
+C * dU/dt = k * laplacian(U) - g_cool * U + q_phase(x, y, t)
+T = T_ambient + U
+```
+
+Where `U` is temperature rise above ambient and `C` is a tunable demo thermal
+capacitance. The transient mode reuses the same floorplan and power mapping but
+steps through a workload trace: prefill burst, KV decode, IO flush, and decode
+tail. It reports:
+
+- max peak temperature;
+- time above the demo risk threshold;
+- thermal dose above that threshold;
+- max spatial gradient;
+- hotspot path distance;
+- per-segment peak.
+
+This makes the value loop closer to a design review: compare whether spreading
+SRAM, stronger cooling, or workload staggering reduces risk in the same
+simplified model.
