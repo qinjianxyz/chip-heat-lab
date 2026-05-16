@@ -25,6 +25,7 @@ export default function HomePage() {
             <Link className="button primary" href="/replay">Open Replay</Link>
             <Link className="button" href="/model">Read Model</Link>
             <Link className="button" href="/non-claims">Claim Boundaries</Link>
+            <a className="button" href="https://github.com/qinjianxyz/chip-heat-lab">GitHub</a>
           </div>
         </div>
         <div className="demo-shell">
@@ -95,19 +96,25 @@ export default function HomePage() {
       </section>
 
       <section className="section">
-        <h2>Hackathon Placeholders</h2>
+        <h2>Submission Surfaces</h2>
         <div className="grid">
           <div className="card">
             <h3>Demo Video</h3>
-            <p>Placeholder: add the 90-second recording after app packaging.</p>
+            <p>Pending the final 90-second recording from the native app.</p>
           </div>
           <div className="card">
             <h3>App Download</h3>
-            <p>Placeholder: add the signed macOS app archive after Xcode export.</p>
+            <p>
+              The repo includes a reproducible unsigned macOS review archive
+              command: <code>scripts/package_macos_release.sh</code>.
+            </p>
           </div>
           <div className="card">
             <h3>GitHub / Submission</h3>
-            <p>Submit this repo as the source package and link the replay page for judges.</p>
+            <p>
+              Source, docs, CI, replay snapshots, and the value benchmark live in
+              the <a href="https://github.com/qinjianxyz/chip-heat-lab">public GitHub repo</a>.
+            </p>
           </div>
         </div>
       </section>

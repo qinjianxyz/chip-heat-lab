@@ -14,6 +14,7 @@ SRAM placement can move a hotspot in an early concept model.
 - GitHub: <https://github.com/qinjianxyz/chip-heat-lab>
 - Live site: <https://chip-heat-lab.vercel.app>
 - Replay: <https://chip-heat-lab.vercel.app/replay>
+- App release: pending upload from `scripts/package_macos_release.sh`
 - Demo video: pending recording.
 
 ## What You Can Demo In 90 Seconds
@@ -39,6 +40,8 @@ bash scripts/run_macos_demo.sh
   the SwiftUI app through Swift Package Manager.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
   `dist/ChipHeatLab.app` for local review. It is unsigned.
+- Release zip: `scripts/package_macos_release.sh hackathon-preview` writes a
+  zipped unsigned app bundle plus checksum and manifest under `dist/`.
 
 ## Repository Layout
 
@@ -120,6 +123,18 @@ open dist/ChipHeatLab.app
 
 The generated bundle is unsigned. Signing/notarization is a release step, not a
 simulation claim.
+
+For a local release archive:
+
+```bash
+bash scripts/package_macos_release.sh hackathon-preview
+ls -lh dist/ChipHeatLab-macos-unsigned-hackathon-preview.zip
+(cd dist && shasum -a 256 -c ChipHeatLab-macos-unsigned-hackathon-preview.zip.sha256)
+cat dist/ChipHeatLab-macos-unsigned-hackathon-preview.zip.sha256
+```
+
+This archive is for hackathon review and demo recording. It is unsigned and
+not notarized.
 
 ## Non-Claims
 
