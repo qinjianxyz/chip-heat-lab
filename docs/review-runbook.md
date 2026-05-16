@@ -149,3 +149,16 @@ Expected package signal:
    spread SRAM reduces it in the nominal bump case, and thermal/droop hotspot
    overlap is reported.
 10. Open the Vercel/local replay and knowledge pages.
+
+For a quiet storyboard dry run before recording narration:
+
+```bash
+bash scripts/render_demo_video_draft.sh
+ffprobe -v error -show_entries format=duration,size -of json dist/demo-video/chip-heat-lab-demo-draft.mp4
+```
+
+Expected signal:
+
+- `dist/demo-video/chip-heat-lab-demo-draft.mp4` is about 90 seconds.
+- The draft is silent and generated from captured stills; it does not replace
+  the final narrated demo video.

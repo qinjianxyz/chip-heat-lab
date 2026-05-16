@@ -39,5 +39,9 @@ knowledge page and note that it is reading the GBrain-ready markdown KB index.
 - Copy the CLI into `apps/macos/ChipHeatLab/Resources/bin/chip_heat_cli`.
 - Generate `kb_index.json` before recording so the explanation panel has the
   same content as the site.
+- For a silent 90-second visual dry run from captured stills, run
+  `bash scripts/render_demo_video_draft.sh`. It writes
+  `dist/demo-video/chip-heat-lab-demo-draft.mp4` and checks the duration. This
+  is a storyboard aid, not the final narrated submission video.
 - Xcode signing and archive export are packaging steps after the working demo is
   verified locally.
