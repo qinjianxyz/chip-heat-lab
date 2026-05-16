@@ -38,6 +38,9 @@ python3 scripts/generate_kb_index.py
 echo "== snapshots =="
 bash scripts/export_snapshots.sh
 
+echo "== value benchmark =="
+bash scripts/run_value_benchmark.sh
+
 echo "== macos resources =="
 bash scripts/prepare_macos_resources.sh
 

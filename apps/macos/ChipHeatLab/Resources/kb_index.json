@@ -48,6 +48,19 @@
     "type": "demo_explanation"
   },
   {
+    "claim_level": "demo",
+    "id": "demo-explanations/value-loop-benchmark",
+    "path": "kb/demo-explanations/value-loop-benchmark.md",
+    "sources": [
+      "benchmarks/value_loop/README.md",
+      "benchmarks/value_loop/results.json",
+      "scripts/run_value_benchmark.sh"
+    ],
+    "summary": "The value-loop benchmark asks whether spreading SRAM changes hotspot and peak behavior for a KV-cache-heavy workload before spending cooling budget. It runs the Rust CLI for clustered SRAM, spread SRAM, training with airflow, and training with aggressive cooling, then aggregates the emitted JSON.",
+    "title": "Value-Loop Benchmark Explanation",
+    "type": "demo_explanation"
+  },
+  {
     "claim_level": "boundary",
     "id": "non-claims/claim-boundaries",
     "path": "kb/non-claims/claim-boundaries.md",
