@@ -9,6 +9,7 @@ struct ContentView: View {
     )
     @State private var result: SimulationResult?
     @State private var previousCentroid: Point?
+    @State private var designComparison: DesignComparison?
     @State private var errorMessage: String?
     @State private var kbEntries: [KBEntry] = []
     @State private var isRunning = false
@@ -155,6 +156,11 @@ struct ContentView: View {
                 .frame(height: 190)
             }
 
+            Text("Design Value")
+                .font(.title3)
+                .bold()
+            designValuePanel
+
             Text("Explanation")
                 .font(.title3)
                 .bold()
@@ -162,6 +168,32 @@ struct ContentView: View {
             Spacer()
         }
         .padding(16)
+    }
+
+    private var designValuePanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Question")
+                .font(.headline)
+            Text("For a KV-cache-heavy workload, does spreading SRAM reduce the hotspot before changing the cooling budget?")
+                .foregroundStyle(.secondary)
+
+            if let comparison = designComparison {
+                HStack(spacing: 10) {
+                    MetricTile(label: "clustered", value: comparison.clusteredPeak)
+                    MetricTile(label: "spread", value: comparison.spreadPeak)
+                    MetricTile(label: "drop", value: comparison.deltaC)
+                }
+                Text(comparison.recommendation)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("Run the simulation to compute the layout comparison.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .background(.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var explanationPanel: some View {
@@ -212,10 +244,35 @@ struct ContentView: View {
             let next = try await runner.run(input)
             previousCentroid = result?.hotspotCentroid
             result = next
+            designComparison = try? await runDesignComparison()
         } catch {
             errorMessage = error.localizedDescription
         }
         isRunning = false
+    }
+
+    private func runDesignComparison() async throws -> DesignComparison {
+        let clustered = try await runner.run(
+            comparisonInput(floorplanMode: .clusteredSram)
+        )
+        let spread = try await runner.run(
+            comparisonInput(floorplanMode: .spreadSram)
+        )
+        return DesignComparison(clustered: clustered, spread: spread)
+    }
+
+    private func comparisonInput(floorplanMode: FloorplanMode) -> ScenarioInput {
+        ScenarioInput(
+            scenarioName: "kv_cache_floorplan_comparison",
+            ambientC: 35.0,
+            conductivity: 0.62,
+            controls: SimulationControls(
+                workloadPhase: .inferenceKv,
+                powerScale: 1.0,
+                coolingPreset: .airflow,
+                floorplanMode: floorplanMode
+            )
+        )
     }
 
     private func loadKB() {
@@ -248,6 +305,47 @@ struct BlockRow: Identifiable {
     var id: String { name }
     var name: String
     var value: Double
+}
+
+struct DesignComparison {
+    var clusteredPeak: Double
+    var spreadPeak: Double
+    var deltaC: Double
+    var clusteredCentroid: Point
+    var spreadCentroid: Point
+
+    init(clustered: SimulationResult, spread: SimulationResult) {
+        clusteredPeak = clustered.peakC
+        spreadPeak = spread.peakC
+        deltaC = clustered.peakC - spread.peakC
+        clusteredCentroid = clustered.hotspotCentroid
+        spreadCentroid = spread.hotspotCentroid
+    }
+
+    var recommendation: String {
+        if deltaC > 1.0 {
+            return String(format: "In this simplified model, spreading SRAM lowers the KV-cache peak by %.1f C and moves the centroid from %.1f, %.1f to %.1f, %.1f.", deltaC, clusteredCentroid.x, clusteredCentroid.y, spreadCentroid.x, spreadCentroid.y)
+        }
+        return "In this simplified model, layout has a smaller effect than cooling or workload phase for this comparison."
+    }
+}
+
+struct MetricTile: View {
+    var label: String
+    var value: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(value, format: .number.precision(.fractionLength(1)))
+                .font(.headline.monospacedDigit())
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(8)
+        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 6))
+    }
 }
 
 struct HeatmapView: View {

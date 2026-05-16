@@ -169,6 +169,25 @@ li {
   line-height: 1.55;
 }
 
+.value-loop {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(420px, 1.2fr);
+  gap: 24px;
+  align-items: end;
+}
+
+.metric-card strong {
+  display: block;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.metric-card span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+}
+
 .doc-layout {
   max-width: 980px;
   margin: 0 auto;
@@ -221,6 +240,7 @@ li {
 @media (max-width: 860px) {
   .hero,
   .replay-grid,
+  .value-loop,
   .grid {
     grid-template-columns: 1fr;
   }

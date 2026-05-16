@@ -5,6 +5,11 @@ import { loadSnapshots } from "../lib/snapshots";
 export default function HomePage() {
   const snapshots = loadSnapshots();
   const heroSnapshot = snapshots[0]?.snapshot;
+  const byName = new Map(snapshots.map((item) => [item.name, item.snapshot]));
+  const clustered = byName.get("inference_clustered");
+  const spread = byName.get("inference_spread");
+  const layoutDrop =
+    clustered && spread ? clustered.peak_c - spread.peak_c : undefined;
 
   return (
     <>
@@ -46,6 +51,33 @@ export default function HomePage() {
           <div className="card">
             <h3>Cooling</h3>
             <p>Increase the cooling preset and show a lower peak in the same model.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section value-loop">
+        <div>
+          <p className="eyebrow">End-to-end value proof</p>
+          <h2>Answer one design question</h2>
+          <p>
+            For a KV-cache-heavy workload, does spreading SRAM reduce the
+            hotspot before changing the cooling budget? The demo computes both
+            floorplans with the same Rust model and reports the peak-temperature
+            delta.
+          </p>
+        </div>
+        <div className="grid">
+          <div className="card metric-card">
+            <strong>{clustered ? clustered.peak_c.toFixed(1) : "--"}</strong>
+            <span>clustered SRAM peak C</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{spread ? spread.peak_c.toFixed(1) : "--"}</strong>
+            <span>spread SRAM peak C</span>
+          </div>
+          <div className="card metric-card">
+            <strong>{layoutDrop !== undefined ? layoutDrop.toFixed(1) : "--"}</strong>
+            <span>delta C in this simplified model</span>
           </div>
         </div>
       </section>

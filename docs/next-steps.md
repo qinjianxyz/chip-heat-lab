@@ -9,8 +9,8 @@ scope.
 1. Deploy the `site/` directory to Vercel.
 2. Record the 90-second demo video from the native app.
 3. Add the Vercel URL and video URL to `README.md`.
-4. Build `dist/ChipHeatLab.app` and confirm it opens locally.
-5. Do one visual polish pass after watching the recording.
+4. Do one visual polish pass after watching the recording.
+5. Add a release zip for the unsigned local `dist/ChipHeatLab.app` bundle.
 
 ## P1 Polish
 
@@ -22,7 +22,7 @@ scope.
 
 ## Explicitly Out of Scope
 
-- More physics models.
+- More physics models before the end-to-end value demo is recorded.
 - FFI between Swift and Rust.
 - RTL/OpenROAD integration.
 - Production thermal-validation claims.
