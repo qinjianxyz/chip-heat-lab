@@ -3,17 +3,19 @@
 **Engineering simulation for chip design, shown as one simplified early-design thermal intuition demo.**
 
 Chip Heat Lab is a clean-room OSS hackathon repo that demonstrates one stylized
-AI accelerator floorplan. A Rust CLI solves a fixed 96x96 steady-state thermal
-hotspot model, a macOS SwiftUI app runs that CLI through stdin/stdout JSON, and
-a Next.js site replays exported solver snapshots. The project is intentionally
-small: it helps a viewer build intuition about how workload, power, cooling, and
-SRAM placement can move a hotspot in an early concept model.
+AI accelerator floorplan. A Rust CLI solves fixed 96x96 steady and transient
+thermal hotspot models, a macOS SwiftUI app runs the steady CLI path through
+stdin/stdout JSON, and a Next.js site replays exported solver snapshots and
+benchmark results. The project is intentionally small: it helps a viewer build
+intuition about how workload, power, cooling, SRAM placement, and burst
+scheduling can change hotspot risk in an early concept model.
 
 ## Links
 
 - GitHub: <https://github.com/qinjianxyz/chip-heat-lab>
 - Live site: <https://chip-heat-lab.vercel.app>
 - Replay: <https://chip-heat-lab.vercel.app/replay>
+- Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App release: <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
 - Demo video: pending recording.
 
@@ -25,17 +27,20 @@ SRAM placement can move a hotspot in an early concept model.
 4. Increase cooling and watch the peak temperature drop.
 5. Open the explanation panel and show the assumptions and non-claims.
 6. Open the public site replay to show the same Rust-exported snapshots.
+7. Open the knowledge page to show the GBrain-ready assumption system.
 
 ## Review Now
 
 ```bash
 bash scripts/verify.sh
+bash scripts/visual_smoke_test.sh
 bash scripts/run_site_demo.sh
 bash scripts/run_macos_demo.sh
 ```
 
 - Site: `http://localhost:4177`
 - Replay: `http://localhost:4177/replay`
+- Knowledge: `http://localhost:4177/knowledge`
 - Native app: `scripts/run_macos_demo.sh` prepares the Rust binary and launches
   the SwiftUI app through Swift Package Manager.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
@@ -64,8 +69,10 @@ bash scripts/run_macos_demo.sh
 cargo test --quiet
 cargo run --quiet -p chip_heat_cli -- --input scenarios/flagship.json
 bash scripts/run_value_benchmark.sh
+bash scripts/run_transient_value_benchmark.sh
 python3 scripts/generate_kb_index.py
 bash scripts/export_snapshots.sh
+bash scripts/visual_smoke_test.sh
 ```
 
 The CLI accepts a scenario JSON document via `--input <path>` or stdin and emits
@@ -91,6 +98,23 @@ reduction in this simplified model, while moving the hotspot centroid by
 training workload peak from `84.055 C` to `58.979 C`. This is usefulness proof
 for the demo loop, not physical validation.
 
+## Transient Value Benchmark
+
+The transient value-loop benchmark asks a more realistic design-review question:
+for a bursty AI accelerator workload trace, should we spend budget on spreading
+SRAM, stronger cooling, or workload staggering?
+
+```bash
+bash scripts/run_transient_value_benchmark.sh
+```
+
+The script drives the Rust CLI in `--transient` mode and writes
+`benchmarks/transient_value_loop/results.json`. In the checked-in result, the
+baseline trace reaches `72.939 C`, spends `12.100 s` over the demo threshold,
+and accumulates `13.189 C-s` of thermal dose. Stronger cooling is the top-ranked
+intervention in this simplified model, while workload staggering removes the
+same over-threshold dose without changing the floorplan or cooling preset.
+
 ## Site
 
 Live: <https://chip-heat-lab.vercel.app>
@@ -102,7 +126,17 @@ npm --prefix site run dev -- --port 4177
 ```
 
 The replay page reads JSON snapshots exported by the Rust CLI from
-`site/public/snapshots/`; it does not reimplement the solver.
+`site/public/snapshots/`; it does not reimplement the solver. The knowledge
+page reads the generated KB index from `site/public/kb/kb_index.json`.
+
+For quiet visual proof:
+
+```bash
+bash scripts/visual_smoke_test.sh
+```
+
+The script checks homepage, knowledge, and replay routes, then writes headless
+screenshots under `dist/visual-proof/` when Chrome or Chromium is available.
 
 ## macOS App
 

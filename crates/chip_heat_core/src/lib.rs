@@ -147,7 +147,91 @@ pub struct SimulationResult {
     pub warnings: Vec<String>,
 }
 
-pub fn flagship_floorplan(mode: FloorplanMode, phase: WorkloadPhase, power_scale: f64) -> Vec<BlockLayout> {
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct WorkloadSegment {
+    pub label: String,
+    pub workload_phase: WorkloadPhase,
+    pub duration_s: f64,
+    pub power_scale: f64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct TransientScenarioInput {
+    pub scenario_name: String,
+    pub ambient_c: f64,
+    pub conductivity: f64,
+    pub cooling_preset: CoolingPreset,
+    pub floorplan_mode: FloorplanMode,
+    pub thermal_capacitance: f64,
+    pub time_step_s: f64,
+    pub risk_threshold_c: f64,
+    pub sample_interval_s: f64,
+    pub segments: Vec<WorkloadSegment>,
+}
+
+impl Default for TransientScenarioInput {
+    fn default() -> Self {
+        Self {
+            scenario_name: "transient_ai_accelerator_review".to_string(),
+            ambient_c: 35.0,
+            conductivity: 0.62,
+            cooling_preset: CoolingPreset::Airflow,
+            floorplan_mode: FloorplanMode::ClusteredSram,
+            thermal_capacitance: 0.45,
+            time_step_s: 0.05,
+            risk_threshold_c: 70.0,
+            sample_interval_s: 1.0,
+            segments: default_workload_trace(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct TransientFrame {
+    pub time_s: f64,
+    pub segment_label: String,
+    pub controls: SimulationControls,
+    pub peak_c: f64,
+    pub peak_cell: Cell,
+    pub hotspot_centroid: Point,
+    pub max_gradient_c_per_cell: f64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct TransientRiskMetrics {
+    pub max_peak_c: f64,
+    pub final_peak_c: f64,
+    pub peak_time_s: f64,
+    pub time_above_threshold_s: f64,
+    pub thermal_dose_c_s: f64,
+    pub max_gradient_c_per_cell: f64,
+    pub hotspot_path_distance_cells: f64,
+    pub per_segment_peak_c: BTreeMap<String, f64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, PartialEq)]
+pub struct TransientSimulationResult {
+    pub scenario_name: String,
+    pub grid_size: usize,
+    pub ambient_c: f64,
+    pub cooling_preset: CoolingPreset,
+    pub floorplan_mode: FloorplanMode,
+    pub risk_threshold_c: f64,
+    pub time_step_s: f64,
+    pub thermal_capacitance: f64,
+    pub segments: Vec<WorkloadSegment>,
+    pub floorplan: Vec<BlockLayout>,
+    pub frames: Vec<TransientFrame>,
+    pub final_temperature_grid: Vec<Vec<f64>>,
+    pub metrics: TransientRiskMetrics,
+    pub warnings: Vec<String>,
+}
+
+pub fn flagship_floorplan(
+    mode: FloorplanMode,
+    phase: WorkloadPhase,
+    power_scale: f64,
+) -> Vec<BlockLayout> {
     let mut blocks = vec![
         block("MatMul Array A", vec![rect(12, 12, 30, 28)], 1.48),
         block("MatMul Array B", vec![rect(54, 12, 30, 28)], 1.36),
@@ -166,6 +250,15 @@ pub fn flagship_floorplan(mode: FloorplanMode, phase: WorkloadPhase, power_scale
         block.power_density *= phase_multiplier(phase, &block.name) * power_scale.max(0.0);
     }
     blocks
+}
+
+pub fn default_workload_trace() -> Vec<WorkloadSegment> {
+    vec![
+        segment("prefill_burst", WorkloadPhase::TrainingMatmul, 8.0, 1.35),
+        segment("kv_decode", WorkloadPhase::InferenceKv, 26.0, 1.05),
+        segment("io_flush", WorkloadPhase::IoBurst, 4.0, 1.10),
+        segment("kv_decode_tail", WorkloadPhase::InferenceKv, 16.0, 0.95),
+    ]
 }
 
 pub fn solve(input: &ScenarioInput) -> SimulationResult {
@@ -209,10 +302,136 @@ pub fn solve(input: &ScenarioInput) -> SimulationResult {
     }
 }
 
+pub fn solve_transient(input: &TransientScenarioInput) -> TransientSimulationResult {
+    let conductivity = input.conductivity.max(0.001);
+    let g_cool = cooling_coefficient(input.cooling_preset);
+    let capacitance = input.thermal_capacitance.max(0.001);
+    let dt = input.time_step_s.clamp(0.01, 1.0);
+    let sample_interval = input.sample_interval_s.max(dt);
+    let mut u = vec![0.0; GRID_SIZE * GRID_SIZE];
+    let mut frames = Vec::new();
+    let mut warnings = Vec::new();
+    let mut time_s = 0.0;
+    let mut next_sample_s = 0.0;
+    let mut max_peak_c = input.ambient_c;
+    let mut final_peak_c = input.ambient_c;
+    let mut peak_time_s = 0.0;
+    let mut time_above_threshold_s = 0.0;
+    let mut thermal_dose_c_s = 0.0;
+    let mut max_gradient_c_per_cell = 0.0;
+    let mut hotspot_path_distance_cells = 0.0;
+    let mut previous_centroid: Option<Point> = None;
+    let mut per_segment_peak_c: BTreeMap<String, f64> = BTreeMap::new();
+
+    if input.segments.is_empty() {
+        warnings.push("transient_trace_has_no_segments".to_string());
+    }
+
+    for segment in &input.segments {
+        if segment.duration_s <= 0.0 {
+            warnings.push(format!(
+                "segment_{}_has_non_positive_duration",
+                segment.label
+            ));
+            continue;
+        }
+
+        let floorplan = flagship_floorplan(
+            input.floorplan_mode,
+            segment.workload_phase,
+            segment.power_scale,
+        );
+        let q = power_grid(&floorplan);
+        let steps = (segment.duration_s / dt).ceil() as usize;
+
+        for _ in 0..steps {
+            transient_step(&mut u, &q, conductivity, g_cool, capacitance, dt);
+            time_s = round3(time_s + dt);
+            let temperature_grid = to_temperature_grid(&u, input.ambient_c);
+            let (peak_c, peak_cell) = peak(&temperature_grid);
+            let centroid = hotspot_centroid(&temperature_grid, input.ambient_c, peak_c);
+            let gradient = max_gradient(&temperature_grid);
+
+            if let Some(previous) = previous_centroid {
+                hotspot_path_distance_cells +=
+                    ((centroid.x - previous.x).powi(2) + (centroid.y - previous.y).powi(2)).sqrt();
+            }
+            previous_centroid = Some(centroid);
+
+            if peak_c > max_peak_c {
+                max_peak_c = peak_c;
+                peak_time_s = time_s;
+            }
+            final_peak_c = peak_c;
+            if peak_c > input.risk_threshold_c {
+                time_above_threshold_s += dt;
+                thermal_dose_c_s += (peak_c - input.risk_threshold_c) * dt;
+            }
+            max_gradient_c_per_cell = f64::max(max_gradient_c_per_cell, gradient);
+            per_segment_peak_c
+                .entry(segment.label.clone())
+                .and_modify(|value| *value = f64::max(*value, peak_c))
+                .or_insert(peak_c);
+
+            if time_s + 1.0e-9 >= next_sample_s {
+                frames.push(TransientFrame {
+                    time_s,
+                    segment_label: segment.label.clone(),
+                    controls: SimulationControls {
+                        workload_phase: segment.workload_phase,
+                        power_scale: segment.power_scale,
+                        cooling_preset: input.cooling_preset,
+                        floorplan_mode: input.floorplan_mode,
+                    },
+                    peak_c,
+                    peak_cell,
+                    hotspot_centroid: centroid,
+                    max_gradient_c_per_cell: gradient,
+                });
+                next_sample_s += sample_interval;
+            }
+        }
+    }
+
+    let final_temperature_grid = to_temperature_grid(&u, input.ambient_c);
+    let floorplan = flagship_floorplan(input.floorplan_mode, WorkloadPhase::Balanced, 1.0);
+
+    TransientSimulationResult {
+        scenario_name: input.scenario_name.clone(),
+        grid_size: GRID_SIZE,
+        ambient_c: input.ambient_c,
+        cooling_preset: input.cooling_preset,
+        floorplan_mode: input.floorplan_mode,
+        risk_threshold_c: input.risk_threshold_c,
+        time_step_s: dt,
+        thermal_capacitance: capacitance,
+        segments: input.segments.clone(),
+        floorplan,
+        frames,
+        final_temperature_grid,
+        metrics: TransientRiskMetrics {
+            max_peak_c: round3(max_peak_c),
+            final_peak_c: round3(final_peak_c),
+            peak_time_s: round3(peak_time_s),
+            time_above_threshold_s: round3(time_above_threshold_s),
+            thermal_dose_c_s: round3(thermal_dose_c_s),
+            max_gradient_c_per_cell: round3(max_gradient_c_per_cell),
+            hotspot_path_distance_cells: round3(hotspot_path_distance_cells),
+            per_segment_peak_c: per_segment_peak_c
+                .into_iter()
+                .map(|(key, value)| (key, round3(value)))
+                .collect(),
+        },
+        warnings,
+    }
+}
+
 pub fn schema_bundle() -> serde_json::Value {
     serde_json::json!({
         "ScenarioInput": schemars::schema_for!(ScenarioInput),
-        "SimulationResult": schemars::schema_for!(SimulationResult)
+        "SimulationResult": schemars::schema_for!(SimulationResult),
+        "TransientScenarioInput": schemars::schema_for!(TransientScenarioInput),
+        "TransientSimulationResult": schemars::schema_for!(TransientSimulationResult)
     })
 }
 
@@ -230,6 +449,20 @@ fn rect(x: usize, y: usize, width: usize, height: usize) -> Rect {
         y,
         width,
         height,
+    }
+}
+
+fn segment(
+    label: &str,
+    workload_phase: WorkloadPhase,
+    duration_s: f64,
+    power_scale: f64,
+) -> WorkloadSegment {
+    WorkloadSegment {
+        label: label.to_string(),
+        workload_phase,
+        duration_s,
+        power_scale,
     }
 }
 
@@ -324,6 +557,20 @@ fn solve_temperature_rise(q: &[f64], k: f64, g_cool: f64) -> (Vec<f64>, usize, f
 
     let residual = residual(&u, q, k, g_cool);
     (u, iterations, residual, converged)
+}
+
+fn transient_step(u: &mut [f64], q: &[f64], k: f64, g_cool: f64, capacitance: f64, dt: f64) {
+    let mut next = vec![0.0; GRID_SIZE * GRID_SIZE];
+    for y in 0..GRID_SIZE {
+        for x in 0..GRID_SIZE {
+            let cell = idx(x, y);
+            let diffusion = k * (neighbor_sum(u, x, y) - 4.0 * u[cell]);
+            let sink = g_cool * u[cell];
+            let derivative = (diffusion - sink + q[cell]) / capacitance;
+            next[cell] = (u[cell] + dt * derivative).max(0.0);
+        }
+    }
+    u.copy_from_slice(&next);
 }
 
 fn neighbor_sum(values: &[f64], x: usize, y: usize) -> f64 {
@@ -427,6 +674,22 @@ fn per_block_max(floorplan: &[BlockLayout], grid: &[Vec<f64>]) -> BTreeMap<Strin
     output
 }
 
+fn max_gradient(grid: &[Vec<f64>]) -> f64 {
+    let mut output = 0.0_f64;
+    for y in 0..GRID_SIZE {
+        for x in 0..GRID_SIZE {
+            let value = grid[y][x];
+            if x + 1 < GRID_SIZE {
+                output = output.max((value - grid[y][x + 1]).abs());
+            }
+            if y + 1 < GRID_SIZE {
+                output = output.max((value - grid[y + 1][x]).abs());
+            }
+        }
+    }
+    round3(output)
+}
+
 fn idx(x: usize, y: usize) -> usize {
     y * GRID_SIZE + x
 }
@@ -439,7 +702,12 @@ fn round3(value: f64) -> f64 {
 mod tests {
     use super::*;
 
-    fn scenario(phase: WorkloadPhase, power_scale: f64, cooling: CoolingPreset, mode: FloorplanMode) -> ScenarioInput {
+    fn scenario(
+        phase: WorkloadPhase,
+        power_scale: f64,
+        cooling: CoolingPreset,
+        mode: FloorplanMode,
+    ) -> ScenarioInput {
         ScenarioInput {
             scenario_name: "test".to_string(),
             controls: SimulationControls {
@@ -522,7 +790,11 @@ mod tests {
         let distance = ((result.peak_cell.x as f64 - center.x).powi(2)
             + (result.peak_cell.y as f64 - center.y).powi(2))
         .sqrt();
-        assert!(distance < 20.0, "peak={:?}, center={center:?}", result.peak_cell);
+        assert!(
+            distance < 20.0,
+            "peak={:?}, center={center:?}",
+            result.peak_cell
+        );
     }
 
     #[test]
@@ -576,5 +848,43 @@ mod tests {
         let schema = schema_bundle();
         assert!(schema.get("ScenarioInput").is_some());
         assert!(schema.get("SimulationResult").is_some());
+        assert!(schema.get("TransientScenarioInput").is_some());
+        assert!(schema.get("TransientSimulationResult").is_some());
+    }
+
+    #[test]
+    fn transient_outputs_workload_risk_metrics() {
+        let result = solve_transient(&TransientScenarioInput::default());
+        assert_eq!(result.grid_size, GRID_SIZE);
+        assert!(!result.frames.is_empty());
+        assert!(result.metrics.max_peak_c > result.ambient_c);
+        assert!(result.metrics.hotspot_path_distance_cells > 0.0);
+        assert!(result.metrics.max_gradient_c_per_cell > 0.0);
+        assert!(result.metrics.per_segment_peak_c.contains_key("kv_decode"));
+    }
+
+    #[test]
+    fn transient_aggressive_cooling_reduces_risk() {
+        let airflow = solve_transient(&TransientScenarioInput::default());
+        let aggressive = solve_transient(&TransientScenarioInput {
+            cooling_preset: CoolingPreset::Aggressive,
+            ..TransientScenarioInput::default()
+        });
+        assert!(aggressive.metrics.max_peak_c < airflow.metrics.max_peak_c);
+        assert!(aggressive.metrics.thermal_dose_c_s <= airflow.metrics.thermal_dose_c_s);
+    }
+
+    #[test]
+    fn transient_spread_sram_changes_hotspot_path() {
+        let clustered = solve_transient(&TransientScenarioInput::default());
+        let spread = solve_transient(&TransientScenarioInput {
+            floorplan_mode: FloorplanMode::SpreadSram,
+            ..TransientScenarioInput::default()
+        });
+        assert_ne!(
+            clustered.frames.last().unwrap().hotspot_centroid,
+            spread.frames.last().unwrap().hotspot_centroid
+        );
+        assert!(spread.metrics.max_peak_c <= clustered.metrics.max_peak_c + 3.0);
     }
 }

@@ -14,10 +14,28 @@ Expected signal:
 - The flagship CLI emits a result JSON with `peak_c`.
 - The value-loop benchmark passes and writes
   `benchmarks/value_loop/results.json`.
+- The transient value benchmark passes and writes
+  `benchmarks/transient_value_loop/results.json`.
 - KB index and replay snapshots are regenerated.
 - Swift build succeeds on macOS.
 - Non-claim lint passes.
 - The Next.js site builds when dependencies are installed.
+
+For quiet visual proof without manual screen capture:
+
+```bash
+bash scripts/visual_smoke_test.sh
+```
+
+Expected signal:
+
+- The homepage contains the value benchmark, transient review, and build-system
+  sections.
+- The knowledge page renders generated KB entries, including the transient value
+  loop explanation.
+- The replay route renders a selected exported snapshot.
+- When Chrome or Chromium is available, screenshots are written under
+  `dist/visual-proof/` and checked for non-empty image size.
 
 ## 2. View the Web Replay
 
@@ -29,6 +47,7 @@ Open:
 
 - `http://localhost:4177`
 - `http://localhost:4177/replay`
+- `http://localhost:4177/knowledge`
 
 The replay uses JSON snapshots exported by the Rust CLI. It does not run a
 browser-side replacement solver.
@@ -92,4 +111,7 @@ Expected package signal:
 7. Show the value benchmark numbers: spread SRAM lowers the KV workload peak by
    about `2.849 C` and moves the hotspot centroid by about `15.052` grid cells
    in this simplified model.
-8. Open the Vercel/local replay page.
+8. Show the transient benchmark numbers: baseline spends measurable time over
+   the demo threshold, workload staggering reduces the dose metric, and stronger
+   cooling has the largest peak reduction in this scenario.
+9. Open the Vercel/local replay and knowledge pages.

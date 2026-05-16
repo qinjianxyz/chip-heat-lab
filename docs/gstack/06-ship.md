@@ -8,16 +8,19 @@ Ship only after:
 - CLI emits a valid result for the flagship scenario.
 - `scripts/run_value_benchmark.sh` passes and writes
   `benchmarks/value_loop/results.json`.
+- `scripts/run_transient_value_benchmark.sh` passes and writes
+  `benchmarks/transient_value_loop/results.json`.
 - `kb_index.json` is generated.
 - Non-claim lint passes.
 - Next.js site builds.
+- `scripts/visual_smoke_test.sh` passes for local route and screenshot proof.
 - SwiftUI `RustRunner` points at a bundled CLI resource with an environment
   variable fallback for local development.
 - The local macOS bundle opens a visible `Chip Heat Lab` window for recording.
 - Native app runs do not leave stuck `chip_heat_cli` child processes after the
   Rust JSON exchange completes.
-- `scripts/run_site_demo.sh` returns HTTP 200 for `/` and `/replay` in the local
-  review environment.
+- `scripts/run_site_demo.sh` returns HTTP 200 for `/`, `/replay`, and
+  `/knowledge` in the local review environment.
 - The production Vercel deployment returns HTTP 200 for
   <https://chip-heat-lab.vercel.app> and
   <https://chip-heat-lab.vercel.app/replay>.

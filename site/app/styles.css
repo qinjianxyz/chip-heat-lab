@@ -51,13 +51,14 @@ code {
 
 nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   color: var(--muted);
   font-size: 14px;
 }
 
 .hero {
-  min-height: calc(100vh - 58px);
+  min-height: min(760px, calc(100vh - 58px));
   display: grid;
   grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1.12fr);
   gap: 34px;
@@ -199,6 +200,46 @@ li {
   color: var(--muted);
 }
 
+.rank-table {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) minmax(110px, auto) minmax(130px, auto);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--panel);
+}
+
+.rank-row span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--steel);
+  color: white;
+  font-weight: 750;
+}
+
+.rank-row strong {
+  text-transform: capitalize;
+}
+
+.rank-row em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 14px;
+}
+
 .doc-layout {
   max-width: 980px;
   margin: 0 auto;
@@ -229,6 +270,12 @@ li {
   background: var(--panel);
 }
 
+.snapshot-list a.selected {
+  border-color: var(--steel);
+  background: #eef7f5;
+  color: var(--ink);
+}
+
 .snapshot-meta {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -241,6 +288,7 @@ li {
   border-radius: 8px;
   padding: 12px;
   background: var(--paper);
+  color: var(--ink);
 }
 
 .metric strong {
@@ -248,15 +296,75 @@ li {
   font-size: 22px;
 }
 
+.metric span {
+  color: var(--muted);
+}
+
 .benchmark-strip {
   margin: 18px 0;
+}
+
+.knowledge-page .lead {
+  max-width: 880px;
+}
+
+.knowledge-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0 34px;
+}
+
+.knowledge-group {
+  margin-top: 34px;
+}
+
+.knowledge-group h2 {
+  text-transform: capitalize;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.knowledge-card {
+  display: grid;
+  gap: 8px;
+}
+
+.kb-meta,
+.source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.kb-meta span,
+.source-list span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: var(--paper);
+  color: var(--steel);
+  font-weight: 650;
+}
+
+.source-list {
+  margin-top: 4px;
 }
 
 @media (max-width: 860px) {
   .hero,
   .replay-grid,
   .value-loop,
-  .grid {
+  .grid,
+  .knowledge-grid,
+  .knowledge-summary {
     grid-template-columns: 1fr;
   }
 
@@ -267,5 +375,9 @@ li {
   nav {
     gap: 9px;
     font-size: 13px;
+  }
+
+  .rank-row {
+    grid-template-columns: 32px 1fr;
   }
 }

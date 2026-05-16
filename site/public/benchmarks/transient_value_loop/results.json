@@ -1,0 +1,266 @@
+{
+  "cases": {
+    "aggressive_cooling": {
+      "cooling_preset": "aggressive",
+      "floorplan_mode": "clustered_sram",
+      "frame_count": 55,
+      "metrics": {
+        "final_peak_c": 52.843,
+        "hotspot_path_distance_cells": 71.812,
+        "max_gradient_c_per_cell": 5.844,
+        "max_peak_c": 61.621,
+        "peak_time_s": 8.0,
+        "per_segment_peak_c": {
+          "io_flush": 54.711,
+          "kv_decode": 61.447,
+          "kv_decode_tail": 52.843,
+          "prefill_burst": 61.621
+        },
+        "thermal_dose_c_s": 0.0,
+        "time_above_threshold_s": 0.0
+      },
+      "risk_threshold_c": 70.0,
+      "scenario_name": "transient_value_aggressive_cooling",
+      "segments": [
+        {
+          "duration_s": 8.0,
+          "label": "prefill_burst",
+          "power_scale": 1.35,
+          "workload_phase": "training_matmul"
+        },
+        {
+          "duration_s": 26.0,
+          "label": "kv_decode",
+          "power_scale": 1.05,
+          "workload_phase": "inference_kv"
+        },
+        {
+          "duration_s": 4.0,
+          "label": "io_flush",
+          "power_scale": 1.1,
+          "workload_phase": "io_burst"
+        },
+        {
+          "duration_s": 16.0,
+          "label": "kv_decode_tail",
+          "power_scale": 0.95,
+          "workload_phase": "inference_kv"
+        }
+      ],
+      "warnings": []
+    },
+    "baseline_clustered": {
+      "cooling_preset": "airflow",
+      "floorplan_mode": "clustered_sram",
+      "frame_count": 55,
+      "metrics": {
+        "final_peak_c": 68.696,
+        "hotspot_path_distance_cells": 76.117,
+        "max_gradient_c_per_cell": 7.28,
+        "max_peak_c": 72.939,
+        "peak_time_s": 8.0,
+        "per_segment_peak_c": {
+          "io_flush": 71.657,
+          "kv_decode": 72.855,
+          "kv_decode_tail": 68.696,
+          "prefill_burst": 72.939
+        },
+        "thermal_dose_c_s": 13.189,
+        "time_above_threshold_s": 12.1
+      },
+      "risk_threshold_c": 70.0,
+      "scenario_name": "transient_value_baseline_clustered",
+      "segments": [
+        {
+          "duration_s": 8.0,
+          "label": "prefill_burst",
+          "power_scale": 1.35,
+          "workload_phase": "training_matmul"
+        },
+        {
+          "duration_s": 26.0,
+          "label": "kv_decode",
+          "power_scale": 1.05,
+          "workload_phase": "inference_kv"
+        },
+        {
+          "duration_s": 4.0,
+          "label": "io_flush",
+          "power_scale": 1.1,
+          "workload_phase": "io_burst"
+        },
+        {
+          "duration_s": 16.0,
+          "label": "kv_decode_tail",
+          "power_scale": 0.95,
+          "workload_phase": "inference_kv"
+        }
+      ],
+      "warnings": []
+    },
+    "spread_sram": {
+      "cooling_preset": "airflow",
+      "floorplan_mode": "spread_sram",
+      "frame_count": 55,
+      "metrics": {
+        "final_peak_c": 65.839,
+        "hotspot_path_distance_cells": 113.498,
+        "max_gradient_c_per_cell": 7.28,
+        "max_peak_c": 72.939,
+        "peak_time_s": 8.0,
+        "per_segment_peak_c": {
+          "io_flush": 68.752,
+          "kv_decode": 72.855,
+          "kv_decode_tail": 65.839,
+          "prefill_burst": 72.939
+        },
+        "thermal_dose_c_s": 4.095,
+        "time_above_threshold_s": 2.85
+      },
+      "risk_threshold_c": 70.0,
+      "scenario_name": "transient_value_spread_sram",
+      "segments": [
+        {
+          "duration_s": 8.0,
+          "label": "prefill_burst",
+          "power_scale": 1.35,
+          "workload_phase": "training_matmul"
+        },
+        {
+          "duration_s": 26.0,
+          "label": "kv_decode",
+          "power_scale": 1.05,
+          "workload_phase": "inference_kv"
+        },
+        {
+          "duration_s": 4.0,
+          "label": "io_flush",
+          "power_scale": 1.1,
+          "workload_phase": "io_burst"
+        },
+        {
+          "duration_s": 16.0,
+          "label": "kv_decode_tail",
+          "power_scale": 0.95,
+          "workload_phase": "inference_kv"
+        }
+      ],
+      "warnings": []
+    },
+    "staggered_workload": {
+      "cooling_preset": "airflow",
+      "floorplan_mode": "clustered_sram",
+      "frame_count": 55,
+      "metrics": {
+        "final_peak_c": 66.405,
+        "hotspot_path_distance_cells": 163.237,
+        "max_gradient_c_per_cell": 5.592,
+        "max_peak_c": 69.0,
+        "peak_time_s": 38.0,
+        "per_segment_peak_c": {
+          "io_flush": 68.925,
+          "kv_decode_a": 64.419,
+          "kv_decode_b": 69.0,
+          "kv_decode_tail": 66.405,
+          "prefill_burst_a": 53.188,
+          "prefill_burst_b": 65.81
+        },
+        "thermal_dose_c_s": 0.0,
+        "time_above_threshold_s": 0.0
+      },
+      "risk_threshold_c": 70.0,
+      "scenario_name": "transient_value_staggered_workload",
+      "segments": [
+        {
+          "duration_s": 4.0,
+          "label": "prefill_burst_a",
+          "power_scale": 1.08,
+          "workload_phase": "training_matmul"
+        },
+        {
+          "duration_s": 13.0,
+          "label": "kv_decode_a",
+          "power_scale": 0.98,
+          "workload_phase": "inference_kv"
+        },
+        {
+          "duration_s": 4.0,
+          "label": "prefill_burst_b",
+          "power_scale": 1.08,
+          "workload_phase": "training_matmul"
+        },
+        {
+          "duration_s": 17.0,
+          "label": "kv_decode_b",
+          "power_scale": 0.98,
+          "workload_phase": "inference_kv"
+        },
+        {
+          "duration_s": 4.0,
+          "label": "io_flush",
+          "power_scale": 1.0,
+          "workload_phase": "io_burst"
+        },
+        {
+          "duration_s": 12.0,
+          "label": "kv_decode_tail",
+          "power_scale": 0.9,
+          "workload_phase": "inference_kv"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "comparisons": {
+    "aggressive_cooling": {
+      "gradient_reduction_c_per_cell": 1.436,
+      "peak_reduction_c": 11.318,
+      "thermal_dose_reduction_c_s": 13.189,
+      "time_above_threshold_reduction_s": 12.1
+    },
+    "spread_sram_floorplan": {
+      "gradient_reduction_c_per_cell": 0.0,
+      "peak_reduction_c": 0.0,
+      "thermal_dose_reduction_c_s": 9.094,
+      "time_above_threshold_reduction_s": 9.25
+    },
+    "staggered_workload": {
+      "gradient_reduction_c_per_cell": 1.688,
+      "peak_reduction_c": 3.939,
+      "thermal_dose_reduction_c_s": 13.189,
+      "time_above_threshold_reduction_s": 12.1
+    }
+  },
+  "design_question": "For a bursty AI accelerator workload trace, which intervention lowers thermal risk: spreading SRAM, stronger cooling, or workload staggering?",
+  "generated_by": "scripts/run_transient_value_benchmark.sh",
+  "model_authority": "chip_heat_cli Rust CLI TransientSimulationResult JSON",
+  "non_claim": "Transient risk ranking for this simplified early-design demo only; not physical validation.",
+  "pass": true,
+  "quality_gates": {
+    "baseline_has_time_above_threshold": true,
+    "no_warnings": true,
+    "pass": true,
+    "warnings_by_case": {}
+  },
+  "ranked_interventions": [
+    {
+      "intervention": "aggressive_cooling",
+      "peak_reduction_c": 11.318,
+      "thermal_dose_reduction_c_s": 13.189,
+      "time_above_threshold_reduction_s": 12.1
+    },
+    {
+      "intervention": "staggered_workload",
+      "peak_reduction_c": 3.939,
+      "thermal_dose_reduction_c_s": 13.189,
+      "time_above_threshold_reduction_s": 12.1
+    },
+    {
+      "intervention": "spread_sram_floorplan",
+      "peak_reduction_c": 0.0,
+      "thermal_dose_reduction_c_s": 9.094,
+      "time_above_threshold_reduction_s": 9.25
+    }
+  ],
+  "schema_version": "chip_heat_lab.transient_value_loop.v1"
+}
