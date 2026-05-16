@@ -1,4 +1,5 @@
 target/
+dist/
 site/node_modules/
 site/.next/
 site/out/

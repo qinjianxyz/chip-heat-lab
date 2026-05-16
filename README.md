@@ -18,6 +18,21 @@ SRAM placement can move a hotspot in an early concept model.
 5. Open the explanation panel and show the assumptions and non-claims.
 6. Open the public site replay to show the same Rust-exported snapshots.
 
+## Review Now
+
+```bash
+bash scripts/verify.sh
+bash scripts/run_site_demo.sh
+bash scripts/run_macos_demo.sh
+```
+
+- Site: `http://localhost:4177`
+- Replay: `http://localhost:4177/replay`
+- Native app: `scripts/run_macos_demo.sh` prepares the Rust binary and launches
+  the SwiftUI app through Swift Package Manager.
+- Double-click bundle: `scripts/bundle_macos_app.sh` writes
+  `dist/ChipHeatLab.app` for local review. It is unsigned.
+
 ## Repository Layout
 
 - `crates/chip_heat_core` - model types, floorplan generation, finite-difference
@@ -29,6 +44,8 @@ SRAM placement can move a hotspot in an early concept model.
 - `kb` - GBrain-importable markdown knowledge base.
 - `scripts` - KB indexing, non-claim linting, snapshot export, and verification.
 - `docs/gstack` - planning, review, QA, ship, canary, and retro artifacts.
+- `docs/review-runbook.md` - exact local review flow for judges and teammates.
+- `docs/next-steps.md` - current hackathon checklist after the foundation commit.
 
 ## Quick Start
 
@@ -49,6 +66,7 @@ a `SimulationResult` JSON payload with `temperature_grid`, `peak_c`,
 ```bash
 npm --prefix site install --silent
 npm --prefix site run build --silent
+npm --prefix site run dev -- --port 4177
 ```
 
 The replay page reads JSON snapshots exported by the Rust CLI from
@@ -60,14 +78,20 @@ The SwiftUI package lives at `apps/macos/ChipHeatLab`. During local packaging,
 copy the compiled Rust CLI into the app resources:
 
 ```bash
-cargo build --release -p chip_heat_cli
-cp target/release/chip_heat_cli apps/macos/ChipHeatLab/Resources/bin/chip_heat_cli
-python3 scripts/generate_kb_index.py
+bash scripts/prepare_macos_resources.sh
+cd apps/macos/ChipHeatLab
+swift run ChipHeatLab
 ```
 
-Then open `apps/macos/ChipHeatLab/Package.swift` in Xcode or run `swift build`
-from that directory. Signing and a double-click `.app` archive are the remaining
-packaging steps after the binary is copied.
+For a local double-click bundle:
+
+```bash
+bash scripts/bundle_macos_app.sh
+open dist/ChipHeatLab.app
+```
+
+The generated bundle is unsigned. Signing/notarization is a release step, not a
+simulation claim.
 
 ## Non-Claims
 
