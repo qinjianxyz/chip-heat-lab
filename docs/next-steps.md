@@ -9,7 +9,8 @@ archive was refreshed on
 <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
 from main commit `58c3fe72596158db9e973b8cbf6c8d60d3be0fd9`. Main branch
 protection is active with strict `verify` status checks and force-push/deletion
-disabled.
+disabled. A narrated fallback demo video is attached to the same prerelease at
+<https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>.
 
 Scope lock: do not open another model lane before recording. The demo story is
 now heat, transient workload memory, and one bounded power-delivery proxy over
@@ -17,15 +18,14 @@ the same stylized AI accelerator floorplan.
 
 ## P0 Before Submission
 
-1. Record the final demo video from the native macOS app and public Vercel
-   site.
+1. Founder-review the narrated fallback video. If it is not good enough, record
+   a live narrated replacement from the native macOS app and public Vercel site.
 2. Founder-review `docs/submission-copy.md` and paste the approved version into
    the submission form.
-3. Add the demo video URL to `README.md`.
-4. Do one visual polish pass after watching the recording.
-5. Re-run native bundle QA immediately before recording:
+3. Do one visual polish pass after watching the approved recording.
+4. Re-run native bundle QA immediately before submission:
    `bash scripts/bundle_macos_app.sh && open dist/ChipHeatLab.app`.
-6. Re-run quiet public-surface checks immediately before submission:
+5. Re-run quiet public-surface checks immediately before submission:
    `bash scripts/visual_smoke_test.sh`,
    `python3 scripts/submission_readiness_check.py --require-video`, and
    `gh run list --repo qinjianxyz/chip-heat-lab --limit 5`.

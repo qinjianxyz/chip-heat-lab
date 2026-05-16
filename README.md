@@ -18,7 +18,8 @@ model.
 - Replay: <https://chip-heat-lab.vercel.app/replay>
 - Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App release: <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
-- Demo video: pending recording.
+- Demo video candidate:
+  <https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>
 
 ## What You Can Demo In 90 Seconds
 
