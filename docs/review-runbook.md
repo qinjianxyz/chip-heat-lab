@@ -39,6 +39,35 @@ Expected signal:
 - When Chrome or Chromium is available, screenshots are written under
   `dist/visual-proof/` and checked for non-empty image size.
 
+For public submission-surface proof:
+
+```bash
+python3 scripts/submission_readiness_check.py
+```
+
+Expected signal:
+
+- The local checkout is clean on `main`.
+- Latest `main` CI is green for the current commit.
+- Branch protection requires the `verify` check and blocks force push/deletion.
+- The live site, knowledge page, public benchmark JSON, and prerelease assets
+  are present.
+- The command reports demo video and founder review as human blockers until
+  those are complete.
+
+From a review branch, use this variant to check the already-published public
+surfaces against `origin/main`:
+
+```bash
+python3 scripts/submission_readiness_check.py --public-only
+```
+
+After the demo video URL is added, run:
+
+```bash
+python3 scripts/submission_readiness_check.py --require-video
+```
+
 ## 2. View the Web Replay
 
 ```bash

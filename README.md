@@ -36,6 +36,7 @@ model.
 ```bash
 bash scripts/verify.sh
 bash scripts/visual_smoke_test.sh
+python3 scripts/submission_readiness_check.py
 bash scripts/run_site_demo.sh
 bash scripts/run_macos_demo.sh
 ```
@@ -45,6 +46,9 @@ bash scripts/run_macos_demo.sh
 - Knowledge: `http://localhost:4177/knowledge`
 - Native app: `scripts/run_macos_demo.sh` prepares the Rust binary and launches
   the SwiftUI app through Swift Package Manager.
+- Submission readiness: `scripts/submission_readiness_check.py` checks the
+  public site, GitHub CI, branch protection, prerelease assets, public benchmark
+  JSON, and remaining human blockers.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
   `dist/ChipHeatLab.app` for local review. It is unsigned.
 - Release zip: `scripts/package_macos_release.sh hackathon-preview` writes a
