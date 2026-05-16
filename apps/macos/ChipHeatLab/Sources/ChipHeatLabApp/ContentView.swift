@@ -10,9 +10,11 @@ struct ContentView: View {
     @State private var result: SimulationResult?
     @State private var previousCentroid: Point?
     @State private var designComparison: DesignComparison?
+    @State private var designReview: DesignReviewResult?
     @State private var errorMessage: String?
     @State private var kbEntries: [KBEntry] = []
     @State private var isRunning = false
+    @State private var isRunningReview = false
 
     private let runner = RustRunner()
 
@@ -22,17 +24,18 @@ struct ContentView: View {
             Divider()
             HStack(spacing: 0) {
                 leftPane
-                    .frame(width: 370)
+                    .frame(width: 340)
                 Divider()
                 heatmapPane
                 Divider()
                 rightPane
-                    .frame(width: 390)
+                    .frame(width: 460)
             }
         }
         .task {
             loadKB()
             await runSimulation()
+            await runDesignReview()
         }
     }
 
@@ -41,7 +44,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Chip Heat Lab")
                     .font(.headline)
-                Text("Simplified early-design thermal intuition demo")
+                Text("Rust-backed early-design review: thermal, transient, and power delivery proxy")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -53,84 +56,106 @@ struct ContentView: View {
                     .padding(.vertical, 5)
                     .background(.orange.opacity(0.18), in: RoundedRectangle(cornerRadius: 6))
             }
+            if let designReview {
+                Text("Review: \(designReview.recommendedLabel)")
+                    .font(.callout)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.green.opacity(0.14), in: RoundedRectangle(cornerRadius: 6))
+            }
             Button("Run") {
                 Task { await runSimulation() }
             }
             .disabled(isRunning)
+            Button("Review") {
+                Task { await runDesignReview() }
+            }
+            .disabled(isRunningReview)
+            .keyboardShortcut("r", modifiers: [.command, .shift])
         }
         .padding(14)
     }
 
     private var leftPane: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("Controls")
-                .font(.title3)
-                .bold()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Workload")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Interactive Solver")
+                    .font(.title3)
+                    .bold()
+                Text("Fast heatmap controls stay live while the design review runs as a separate Rust CLI mode.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Picker("", selection: binding(\.workloadPhase)) {
-                    ForEach(WorkloadPhase.allCases) { phase in
-                        Text(phase.label).tag(phase)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-            }
+                    .fixedSize(horizontal: false, vertical: true)
 
-            VStack(alignment: .leading) {
-                Text("Power Scale \(controls.powerScale, specifier: "%.2f")")
-                    .font(.caption)
-                Slider(value: binding(\.powerScale), in: 0...2.2, step: 0.1)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Cooling")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Picker("", selection: binding(\.coolingPreset)) {
-                    ForEach(CoolingPreset.allCases) { preset in
-                        Text(preset.label).tag(preset)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Floorplan")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Picker("", selection: binding(\.floorplanMode)) {
-                    ForEach(FloorplanMode.allCases) { mode in
-                        Text(mode.label).tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-            }
-
-            if let result {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Hotspot")
-                        .font(.headline)
-                    Text("Cell \(result.peakCell.x), \(result.peakCell.y)")
-                    Text("Centroid \(result.hotspotCentroid.x, specifier: "%.1f"), \(result.hotspotCentroid.y, specifier: "%.1f")")
-                    Text(movementText(result.hotspotCentroid))
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Workload")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
+                    Picker("", selection: binding(\.workloadPhase)) {
+                        ForEach(WorkloadPhase.allCases) { phase in
+                            Text(phase.label).tag(phase)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                }
+
+                VStack(alignment: .leading) {
+                    Text("Power Scale \(controls.powerScale, specifier: "%.2f")")
+                        .font(.caption)
+                    Slider(value: binding(\.powerScale), in: 0...2.2, step: 0.1)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Cooling")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Picker("", selection: binding(\.coolingPreset)) {
+                        ForEach(CoolingPreset.allCases) { preset in
+                            Text(preset.label).tag(preset)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Floorplan")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Picker("", selection: binding(\.floorplanMode)) {
+                        ForEach(FloorplanMode.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                }
+
+                if let result {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Live Hotspot")
+                            .font(.headline)
+                        Text("Cell \(result.peakCell.x), \(result.peakCell.y)")
+                        Text("Centroid \(result.hotspotCentroid.x, specifier: "%.1f"), \(result.hotspotCentroid.y, specifier: "%.1f")")
+                        Text(movementText(result.hotspotCentroid))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .font(.callout)
+                    .padding(10)
+                    .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                }
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-            Spacer()
+            .padding(16)
         }
-        .padding(16)
         .onChange(of: controls) { _ in
             Task { await runSimulation() }
         }
@@ -159,33 +184,15 @@ struct ContentView: View {
     }
 
     private var rightPane: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Per-Block Max")
-                .font(.title3)
-                .bold()
-            if let result {
-                Table(blockRows(result), columns: {
-                    TableColumn("Block", value: \.name)
-                    TableColumn("Max C") { row in
-                        Text(row.value, format: .number.precision(.fractionLength(1)))
-                            .monospacedDigit()
-                    }
-                })
-                .frame(height: 190)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                designReviewPanel
+                blockMaxPanel
+                designValuePanel
+                explanationPanel
             }
-
-            Text("Design Value")
-                .font(.title3)
-                .bold()
-            designValuePanel
-
-            Text("Explanation")
-                .font(.title3)
-                .bold()
-            explanationPanel
-            Spacer()
+            .padding(16)
         }
-        .padding(16)
     }
 
     private var designValuePanel: some View {
@@ -216,31 +223,235 @@ struct ContentView: View {
         .background(.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
     }
 
+    private var designReviewPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Design Review")
+                        .font(.title3)
+                        .bold()
+                    Text("Rust CLI composes steady thermal, transient dose, and power-delivery proxy checks.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                if isRunningReview {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                }
+            }
+
+            if let designReview {
+                let recommended = recommendedCandidate(in: designReview)
+                let baseline = designReview.baseline
+
+                Text(designReview.designQuestion)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 8) {
+                    ReviewStatusPill(text: baseline.pass ? "BASELINE PASS" : "BASELINE RISK", color: baseline.pass ? .green : .orange)
+                    ReviewStatusPill(text: designReview.pass ? "REVIEW HAS PASSING FIX" : "NO PASSING FIX", color: designReview.pass ? .green : .red)
+                    Spacer(minLength: 0)
+                }
+
+                if let recommended {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Recommended First Change")
+                            .font(.headline)
+                        Text(recommended.label)
+                            .font(.title3)
+                            .bold()
+                        Text(recommended.reason)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack(spacing: 8) {
+                            MetricTile(label: "steady", value: recommended.steadyPeakC, unit: "C", tint: .orange)
+                            MetricTile(label: "dose", value: recommended.thermalDoseCS, unit: "C-s", tint: .red)
+                            MetricTile(label: "droop", value: recommended.worstDroopMv, unit: "mV", tint: .blue)
+                            MetricTile(label: "cost", value: recommended.costScore, unit: "", tint: .green)
+                        }
+                    }
+                    .padding(10)
+                    .background(.green.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                }
+
+                constraintPanel(designReview)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Ranked Interventions")
+                            .font(.headline)
+                        Spacer()
+                        Text("lowest passing score first")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(Array(designReview.rankedCandidates.prefix(6).enumerated()), id: \.element.id) { index, candidate in
+                        CandidateReviewRow(rank: index + 1, candidate: candidate)
+                    }
+                }
+
+                if !designReview.warnings.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Model Warnings")
+                            .font(.headline)
+                        ForEach(designReview.warnings, id: \.self) { warning in
+                            Text(warning.replacingOccurrences(of: "_", with: " "))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Text(designReview.nonClaim)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(8)
+                    .background(.gray.opacity(0.10), in: RoundedRectangle(cornerRadius: 8))
+            } else {
+                Text("Runs the Rust CLI design-review mode: steady thermal, transient dose, power-delivery proxy, constraints, and ranked intervention.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(12)
+        .background(.green.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var blockMaxPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Per-Block Max")
+                .font(.title3)
+                .bold()
+            if let result {
+                Table(blockRows(result), columns: {
+                    TableColumn("Block", value: \.name)
+                    TableColumn("Max C") { row in
+                        Text(row.value, format: .number.precision(.fractionLength(1)))
+                            .monospacedDigit()
+                    }
+                })
+                .frame(height: 170)
+            } else {
+                Text("Waiting for the interactive heatmap run.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private var explanationPanel: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("GBrain-Ready Knowledge")
+                .font(.title3)
+                .bold()
+            Text("The app keeps assumptions and claim boundaries visible from the same KB index used by the repo and site.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Assumptions")
                     .font(.headline)
-                Text("Fixed 96x96 grid, stylized AI accelerator blocks, one steady-state 2D equation, demo-unit power density, and three cooling presets.")
+                Text("Fixed 96x96 grid, stylized AI accelerator blocks, simplified thermal equations, demo-unit power density, and proxy power-delivery checks.")
 
                 Text("Non-Claims")
                     .font(.headline)
-                Text("This is not verification, manufacturing evidence, or a production thermal tool. It is a simplified early-design thermal intuition demo.")
+                Text("This is not verification, manufacturing evidence, standards compliance, package airflow analysis, or a production chip-design tool.")
 
                 if !kbEntries.isEmpty {
-                    Text("KB")
-                        .font(.headline)
-                    ForEach(kbEntries.prefix(4)) { entry in
+                    Divider()
+                    ForEach(kbEntries.prefix(5)) { entry in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(entry.title).bold()
                             Text(entry.summary)
                                 .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
             }
             .font(.callout)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func constraintPanel(_ designReview: DesignReviewResult) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Constraint Checks")
+                .font(.headline)
+            ForEach(constraintKeys(in: designReview), id: \.self) { key in
+                ConstraintCheckRow(
+                    name: constraintLabel(key),
+                    limit: constraintLimitText(key, value: designReview.constraints[key] ?? 0),
+                    baselineValue: candidateValueText(designReview.baseline, key: key),
+                    recommendedValue: recommendedCandidate(in: designReview).map { candidateValueText($0, key: key) } ?? "-",
+                    baselinePass: !violates(designReview.baseline, key: key),
+                    recommendedPass: recommendedCandidate(in: designReview).map { !violates($0, key: key) } ?? false
+                )
+            }
+        }
+        .padding(10)
+        .background(.blue.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func recommendedCandidate(in designReview: DesignReviewResult) -> DesignCandidateResult? {
+        designReview.rankedCandidates.first { $0.intervention == designReview.recommendedIntervention }
+            ?? designReview.rankedCandidates.first
+    }
+
+    private func constraintKeys(in designReview: DesignReviewResult) -> [String] {
+        let preferred = ["peak_limit_c", "thermal_dose_limit_c_s", "droop_limit_mv", "overlap_limit"]
+        let present = Set(designReview.constraints.keys)
+        let ordered = preferred.filter { present.contains($0) }
+        return ordered + designReview.constraints.keys.filter { !preferred.contains($0) }.sorted()
+    }
+
+    private func constraintLabel(_ key: String) -> String {
+        switch key {
+        case "peak_limit_c": return "Steady peak"
+        case "thermal_dose_limit_c_s": return "Thermal dose"
+        case "droop_limit_mv": return "Worst droop"
+        case "overlap_limit": return "Thermal/PDN overlap"
+        default: return key.replacingOccurrences(of: "_", with: " ")
+        }
+    }
+
+    private func constraintLimitText(_ key: String, value: Double) -> String {
+        switch key {
+        case "peak_limit_c": return String(format: "<= %.0f C", value)
+        case "thermal_dose_limit_c_s": return String(format: "<= %.1f C-s", value)
+        case "droop_limit_mv": return String(format: "<= %.0f mV", value)
+        case "overlap_limit": return String(format: "<= %.2f", value)
+        default: return String(format: "<= %.2f", value)
+        }
+    }
+
+    private func candidateValueText(_ candidate: DesignCandidateResult, key: String) -> String {
+        switch key {
+        case "peak_limit_c": return String(format: "%.1f C", candidate.steadyPeakC)
+        case "thermal_dose_limit_c_s": return String(format: "%.1f C-s", candidate.thermalDoseCS)
+        case "droop_limit_mv": return String(format: "%.1f mV", candidate.worstDroopMv)
+        case "overlap_limit": return String(format: "%.2f", candidate.overlapScore)
+        default: return "-"
+        }
+    }
+
+    private func violates(_ candidate: DesignCandidateResult, key: String) -> Bool {
+        let fragments: [String]
+        switch key {
+        case "peak_limit_c": fragments = ["peak"]
+        case "thermal_dose_limit_c_s": fragments = ["thermal_dose"]
+        case "droop_limit_mv": fragments = ["droop"]
+        case "overlap_limit": fragments = ["overlap"]
+        default: fragments = [key]
+        }
+        return candidate.constraintViolations.contains { violation in
+            fragments.contains { violation.contains($0) }
         }
     }
 
@@ -279,6 +490,18 @@ struct ContentView: View {
             comparisonInput(floorplanMode: .spreadSram)
         )
         return DesignComparison(clustered: clustered, spread: spread)
+    }
+
+    private func runDesignReview() async {
+        isRunningReview = true
+        do {
+            designReview = try await runner.runDesignReview()
+        } catch {
+            if errorMessage == nil {
+                errorMessage = error.localizedDescription
+            }
+        }
+        isRunningReview = false
     }
 
     private func comparisonInput(floorplanMode: FloorplanMode) -> ScenarioInput {
@@ -350,21 +573,142 @@ struct DesignComparison {
     }
 }
 
+struct ReviewStatusPill: View {
+    var text: String
+    var color: Color
+
+    var body: some View {
+        Text(text)
+            .font(.caption2.bold())
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .foregroundStyle(color)
+            .background(color.opacity(0.12), in: Capsule())
+    }
+}
+
 struct MetricTile: View {
     var label: String
     var value: Double
+    var unit = ""
+    var tint = Color.blue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value, format: .number.precision(.fractionLength(1)))
-                .font(.headline.monospacedDigit())
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value, format: .number.precision(.fractionLength(1)))
+                    .font(.headline.monospacedDigit())
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
-        .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 6))
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 6))
+    }
+}
+
+struct ConstraintCheckRow: View {
+    var name: String
+    var limit: String
+    var baselineValue: String
+    var recommendedValue: String
+    var baselinePass: Bool
+    var recommendedPass: Bool
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
+            GridRow {
+                Text(name)
+                    .font(.caption.bold())
+                Text("base")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("rec")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(limit)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            GridRow {
+                Text("")
+                valueText(baselineValue, pass: baselinePass)
+                valueText(recommendedValue, pass: recommendedPass)
+                Text("")
+            }
+        }
+        .padding(.vertical, 3)
+    }
+
+    private func valueText(_ text: String, pass: Bool) -> some View {
+        Text(text)
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(pass ? .green : .orange)
+    }
+}
+
+struct CandidateReviewRow: View {
+    var rank: Int
+    var candidate: DesignCandidateResult
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("#\(rank)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, alignment: .leading)
+                ReviewStatusPill(
+                    text: candidate.pass ? "PASS" : "\(candidate.constraintViolations.count) RISK",
+                    color: candidate.pass ? .green : .orange
+                )
+                Text(candidate.label)
+                    .font(.callout.bold())
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Text(String(format: "%.1f cost", candidate.costScore))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 8) {
+                MiniMetric(label: "steady", value: String(format: "%.1f C", candidate.steadyPeakC))
+                MiniMetric(label: "dose", value: String(format: "%.1f C-s", candidate.thermalDoseCS))
+                MiniMetric(label: "droop", value: String(format: "%.1f mV", candidate.worstDroopMv))
+                MiniMetric(label: "overlap", value: String(format: "%.2f", candidate.overlapScore))
+            }
+
+            Text(candidate.reason)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .background(candidate.pass ? Color.green.opacity(0.06) : Color.orange.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+struct MiniMetric: View {
+    var label: String
+    var value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(value)
+                .font(.caption.monospacedDigit())
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

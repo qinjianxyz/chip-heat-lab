@@ -48,6 +48,22 @@ enum FloorplanMode: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum PowerBumpPreset: String, Codable {
+    case sparse
+    case nominal
+    case dense
+}
+
+enum DesignIntervention: String, Codable {
+    case baseline
+    case spreadSram = "spread_sram"
+    case densePowerBumps = "dense_power_bumps"
+    case aggressiveCooling = "aggressive_cooling"
+    case staggeredWorkload = "staggered_workload"
+    case spreadSramDenseBumps = "spread_sram_dense_bumps"
+    case spreadSramDenseBumpsStaggered = "spread_sram_dense_bumps_staggered"
+}
+
 struct SimulationControls: Codable, Equatable {
     var workloadPhase: WorkloadPhase
     var powerScale: Double
@@ -155,5 +171,92 @@ struct KBEntry: Codable, Identifiable {
         case claimLevel = "claim_level"
         case sources
         case summary
+    }
+}
+
+struct DesignCandidateResult: Codable, Identifiable, Equatable {
+    var id: String { intervention.rawValue }
+    var intervention: DesignIntervention
+    var label: String
+    var controls: SimulationControls
+    var bumpPreset: PowerBumpPreset
+    var steadyPeakC: Double
+    var transientMaxPeakC: Double
+    var timeAboveThresholdS: Double
+    var thermalDoseCS: Double
+    var maxGradientCPerCell: Double
+    var hotspotPathDistanceCells: Double
+    var worstDroopMv: Double
+    var thermalPdnDistanceCells: Double
+    var overlapScore: Double
+    var riskUtilization: DesignRiskUtilization
+    var costScore: Double
+    var constraintViolations: [String]
+    var pass: Bool
+    var rankScore: Double
+    var reason: String
+
+    enum CodingKeys: String, CodingKey {
+        case intervention
+        case label
+        case controls
+        case bumpPreset = "bump_preset"
+        case steadyPeakC = "steady_peak_c"
+        case transientMaxPeakC = "transient_max_peak_c"
+        case timeAboveThresholdS = "time_above_threshold_s"
+        case thermalDoseCS = "thermal_dose_c_s"
+        case maxGradientCPerCell = "max_gradient_c_per_cell"
+        case hotspotPathDistanceCells = "hotspot_path_distance_cells"
+        case worstDroopMv = "worst_droop_mv"
+        case thermalPdnDistanceCells = "thermal_pdn_distance_cells"
+        case overlapScore = "overlap_score"
+        case riskUtilization = "risk_utilization"
+        case costScore = "cost_score"
+        case constraintViolations = "constraint_violations"
+        case pass
+        case rankScore = "rank_score"
+        case reason
+    }
+}
+
+struct DesignRiskUtilization: Codable, Equatable {
+    var steadyPeak: Double
+    var thermalDose: Double
+    var worstDroop: Double
+    var overlap: Double
+
+    enum CodingKeys: String, CodingKey {
+        case steadyPeak = "steady_peak"
+        case thermalDose = "thermal_dose"
+        case worstDroop = "worst_droop"
+        case overlap
+    }
+}
+
+struct DesignReviewResult: Codable, Equatable {
+    var scenarioName: String
+    var designQuestion: String
+    var baseline: DesignCandidateResult
+    var rankedCandidates: [DesignCandidateResult]
+    var recommendedIntervention: DesignIntervention
+    var recommendedLabel: String
+    var paretoFrontier: [DesignIntervention]
+    var constraints: [String: Double]
+    var warnings: [String]
+    var nonClaim: String
+    var pass: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case scenarioName = "scenario_name"
+        case designQuestion = "design_question"
+        case baseline
+        case rankedCandidates = "ranked_candidates"
+        case recommendedIntervention = "recommended_intervention"
+        case recommendedLabel = "recommended_label"
+        case paretoFrontier = "pareto_frontier"
+        case constraints
+        case warnings
+        case nonClaim = "non_claim"
+        case pass
     }
 }

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use chip_heat_core::{
-    schema_bundle, solve, solve_power_delivery_proxy, solve_transient, PowerDeliveryProxyInput,
-    ScenarioInput, TransientScenarioInput,
+    schema_bundle, solve, solve_design_review, solve_power_delivery_proxy, solve_transient,
+    DesignReviewInput, PowerDeliveryProxyInput, ScenarioInput, TransientScenarioInput,
 };
 use clap::Parser;
 use std::fs;
@@ -31,6 +31,10 @@ struct Args {
     /// Read PowerDeliveryProxyInput JSON and emit PowerDeliveryProxyResult JSON.
     #[arg(long)]
     power_proxy: bool,
+
+    /// Read DesignReviewInput JSON and emit DesignReviewResult JSON.
+    #[arg(long)]
+    design_review: bool,
 }
 
 fn main() -> Result<()> {
@@ -41,12 +45,22 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    if args.transient && args.power_proxy {
-        anyhow::bail!("choose at most one solver mode: --transient or --power-proxy");
+    let mode_count = [args.transient, args.power_proxy, args.design_review]
+        .into_iter()
+        .filter(|enabled| *enabled)
+        .count();
+    if mode_count > 1 {
+        anyhow::bail!(
+            "choose at most one solver mode: --transient, --power-proxy, or --design-review"
+        );
     }
 
     let payload = read_payload(args.input)?;
-    if args.power_proxy {
+    if args.design_review {
+        let input = parse_or_default::<DesignReviewInput>(&payload)?;
+        let result = solve_design_review(&input);
+        print_json(&result, args.pretty)?;
+    } else if args.power_proxy {
         let input = parse_or_default::<PowerDeliveryProxyInput>(&payload)?;
         let result = solve_power_delivery_proxy(&input);
         print_json(&result, args.pretty)?;

@@ -47,6 +47,10 @@ bash scripts/run_transient_value_benchmark.sh
 echo "== power delivery proxy benchmark =="
 bash scripts/run_power_delivery_benchmark.sh
 
+echo "== design review benchmark =="
+bash scripts/run_design_review_benchmark.sh
+git diff --exit-code -- benchmarks/design_review/results.json site/public/benchmarks/design_review/results.json
+
 echo "== macos resources =="
 bash scripts/prepare_macos_resources.sh
 
@@ -63,6 +67,7 @@ python3 scripts/lint_nonclaims.py
 if [[ -f site/package.json ]]; then
   if [[ -d site/node_modules ]]; then
     echo "== site build =="
+    rm -rf site/.next 2>/dev/null || true
     npm --prefix site run build --silent
   else
     echo "== site build skipped: site/node_modules missing =="

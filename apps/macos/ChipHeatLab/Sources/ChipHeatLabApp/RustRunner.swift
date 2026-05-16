@@ -22,10 +22,20 @@ final class RustRunner {
     private let encoder = JSONEncoder()
 
     func run(_ input: ScenarioInput) async throws -> SimulationResult {
+        let payload = try encoder.encode(input)
+        return try await runProcess(arguments: [], payload: payload)
+    }
+
+    func runDesignReview() async throws -> DesignReviewResult {
+        try await runProcess(arguments: ["--design-review"], payload: Data())
+    }
+
+    private func runProcess<T: Decodable>(arguments: [String], payload: Data) async throws -> T {
         try await Task.detached(priority: .userInitiated) {
             let executableURL = try Self.resolveExecutableURL()
             let process = Process()
             process.executableURL = executableURL
+            process.arguments = arguments
 
             let stdin = Pipe()
             let stdout = Pipe()
@@ -34,9 +44,10 @@ final class RustRunner {
             process.standardOutput = stdout
             process.standardError = stderr
 
-            let payload = try self.encoder.encode(input)
             try process.run()
-            stdin.fileHandleForWriting.write(payload)
+            if !payload.isEmpty {
+                stdin.fileHandleForWriting.write(payload)
+            }
             try stdin.fileHandleForWriting.close()
 
             let output = stdout.fileHandleForReading.readDataToEndOfFile()
@@ -50,7 +61,7 @@ final class RustRunner {
             guard !output.isEmpty else {
                 throw RustRunnerError.noOutput
             }
-            return try self.decoder.decode(SimulationResult.self, from: output)
+            return try self.decoder.decode(T.self, from: output)
         }.value
     }
 

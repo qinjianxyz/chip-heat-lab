@@ -11,6 +11,16 @@ export type Snapshot = {
     cooling_preset: string;
     floorplan_mode: string;
   };
+  floorplan: Array<{
+    name: string;
+    rects: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>;
+    power_density: number;
+  }>;
   temperature_grid: number[][];
   peak_c: number;
   peak_cell: { x: number; y: number };

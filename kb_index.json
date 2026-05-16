@@ -37,6 +37,18 @@
   },
   {
     "claim_level": "demo",
+    "id": "demo-explanations/design-review",
+    "path": "kb/demo-explanations/design-review.md",
+    "sources": [
+      "docs/model.md",
+      "benchmarks/design_review/results.json"
+    ],
+    "summary": "The design review workflow composes the demo's steady thermal, transient thermal, and power-delivery proxy outputs into one ranked intervention table. It turns the baseline KV-cache clustered-SRAM case into an inspectable review: which simplified gates failed, which candidate fixes Rust compared, and why the lowest-cost passing intervention is recommended for this demo model.",
+    "title": "Design Review Workflow",
+    "type": "explanation"
+  },
+  {
+    "claim_level": "demo",
     "id": "demo-explanations/power-delivery-proxy",
     "path": "kb/demo-explanations/power-delivery-proxy.md",
     "sources": [

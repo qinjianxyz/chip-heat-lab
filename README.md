@@ -1,15 +1,32 @@
 # Chip Heat Lab
 
-**Engineering simulation for chip design, shown as one simplified early-design thermal intuition demo.**
+**Engineering simulation for chip design, shown as one simplified early-design design-review demo.**
 
 Chip Heat Lab is a clean-room OSS hackathon repo that demonstrates one stylized
 AI accelerator floorplan. A Rust CLI solves fixed 96x96 steady and transient
-thermal hotspot models, a macOS SwiftUI app runs the steady CLI path through
-stdin/stdout JSON, and a Next.js site replays exported solver snapshots and
-benchmark results. The project is intentionally small: it helps a viewer build
-intuition about how workload, power, cooling, SRAM placement, burst scheduling,
-and a simple power-delivery proxy can change early design risk in one concept
-model.
+thermal hotspot models, a simplified power-delivery proxy, and a composed
+design-review workflow that ranks candidate interventions against demo
+constraints. A macOS SwiftUI app runs the Rust CLI through stdin/stdout JSON,
+and a Next.js site replays exported solver snapshots and benchmark results. The
+project is intentionally narrow: it helps a viewer understand how workload,
+power, cooling, SRAM placement, burst scheduling, and a simple droop proxy can
+change early design risk in one concept model.
+
+The flagship value loop is deliberately decision-shaped:
+
+```text
+baseline clustered-SRAM KV-cache design
+  -> steady thermal peak
+  -> transient thermal dose
+  -> power-delivery droop proxy
+  -> simplified constraints
+  -> ranked intervention recommendation
+```
+
+That is the main demo promise: Chip Heat Lab does not ask judges to trust a
+pretty field image. It shows a baseline review, the specific simplified
+constraints that failed, the candidate fixes Rust evaluated, and the lowest-cost
+passing intervention for this clean-room model.
 
 ## Links
 
@@ -23,14 +40,31 @@ model.
 
 ## What You Can Demo In 90 Seconds
 
-1. Open the macOS app and run the flagship floorplan.
-2. Switch the workload phase to move the dominant block.
-3. Toggle clustered versus spread SRAM to show hotspot and peak changes.
-4. Increase cooling and watch the peak temperature drop.
-5. Open the explanation panel and show the assumptions and non-claims.
-6. Open the public site replay to show the same Rust-exported snapshots.
-7. Show the transient and power-delivery proxy benchmarks on the site.
-8. Open the knowledge page to show the GBrain-ready assumption system.
+1. Open the public site and show the design-review cockpit.
+2. Explain that the baseline fails simplified peak, thermal-dose, and droop
+   constraints.
+3. Show Rust's recommendation: spread SRAM is the lowest-cost passing
+   intervention for this demo review.
+4. Open the macOS app and run the flagship floorplan.
+5. Toggle clustered versus spread SRAM to show the visible field change behind
+   the recommendation.
+6. Show the transient and power-delivery proxy benchmark sections.
+7. Open the knowledge page to show the GBrain-ready assumption system.
+8. Open `docs/gstack/` to show the GStack scope/review/QA/ship artifacts.
+
+## Why This Is More Than A Heatmap
+
+- **One shared floorplan:** steady thermal, transient dose, and the
+  power-delivery proxy all evaluate the same stylized AI accelerator layout.
+- **One review question:** "Which intervention should I inspect first for this
+  KV-cache risk?" is answered by benchmark JSON from the Rust CLI.
+- **Inspectable recommendation:** every ranked candidate carries peak
+  temperature, thermal dose, worst droop, pass/fail constraints, and demo cost.
+- **Knowledge-backed explanation:** the app/site consume a generated GBrain-ready
+  KB index instead of hardcoding unsupported prose.
+- **GStack discipline:** scope lock, engineering review, QA, ship, canary, and
+  remaining founder gates live in repo docs, so the hackathon build process is
+  reviewable.
 
 ## Review Now
 
@@ -89,6 +123,7 @@ cargo run --quiet -p chip_heat_cli -- --input scenarios/flagship.json
 bash scripts/run_value_benchmark.sh
 bash scripts/run_transient_value_benchmark.sh
 bash scripts/run_power_delivery_benchmark.sh
+bash scripts/run_design_review_benchmark.sh
 python3 scripts/generate_kb_index.py
 bash scripts/export_snapshots.sh
 bash scripts/visual_smoke_test.sh
@@ -98,6 +133,38 @@ The CLI accepts a scenario JSON document via `--input <path>` or stdin and emits
 a `SimulationResult` JSON payload with `temperature_grid`, `peak_c`,
 `peak_cell`, `hotspot_centroid`, `per_block_max`, `residual`, `iterations`, and
 `warnings`.
+
+## Design Review Benchmark
+
+The flagship benchmark asks the value-creation question directly: which
+lowest-cost intervention makes the KV-cache design review pass the simplified
+thermal and power-delivery constraints?
+
+```bash
+bash scripts/run_design_review_benchmark.sh
+```
+
+The script drives the Rust CLI in `--design-review` mode and writes
+`benchmarks/design_review/results.json`. In the checked-in result, the baseline
+clustered-SRAM design has a `71.085 C` steady KV peak, `13.490 C-s` transient
+thermal dose, and `67.534 mV` worst droop, failing all three demo constraints.
+The recommended intervention is `Spread SRAM`, which lowers those metrics to
+`68.236 C`, `4.263 C-s`, and `50.124 mV` with the lowest passing demo cost
+score. This is the main usefulness proof: the app does not just draw a field,
+it turns simplified model outputs into a ranked design-review decision.
+
+The benchmark is intentionally small enough to inspect but rich enough to show
+workflow value:
+
+- `Stagger workload` removes transient dose but still fails steady thermal and
+  droop constraints.
+- `Aggressive cooling` fixes thermal behavior but still fails the droop proxy.
+- `Dense power bumps` fixes droop but still fails thermal constraints.
+- `Spread SRAM` is the lowest-cost candidate that passes all three simplified
+  gates in the checked-in review.
+
+Those tradeoffs are the demo's usefulness claim. They are not physical
+validation, package modeling, or manufacturing approval.
 
 ## Value Benchmark
 
