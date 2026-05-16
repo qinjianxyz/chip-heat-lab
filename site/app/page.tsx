@@ -252,7 +252,12 @@ export default function HomePage() {
         <div className="grid">
           <div className="card">
             <h3>Demo Video</h3>
-            <p>Pending the final 90-second recording from the native app.</p>
+            <p>
+              Review the narrated fallback video from the{" "}
+              <a href="https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4">GitHub prerelease</a>.
+              Founder approval is still required before treating it as the
+              submission video.
+            </p>
           </div>
           <div className="card">
             <h3>App Download</h3>

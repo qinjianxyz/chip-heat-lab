@@ -17,6 +17,11 @@ REPO = "qinjianxyz/chip-heat-lab"
 SITE = "https://chip-heat-lab.vercel.app"
 RELEASE_TAG = "v0.1.0-hackathon-preview"
 POWER_PROXY_COMMIT = "58c3fe72596158db9e973b8cbf6c8d60d3be0fd9"
+DEMO_VIDEO_ASSET = "chip-heat-lab-demo-narrated-fallback.mp4"
+DEMO_VIDEO_URL = (
+    "https://github.com/qinjianxyz/chip-heat-lab/releases/download/"
+    f"{RELEASE_TAG}/{DEMO_VIDEO_ASSET}"
+)
 
 
 def run(args: list[str], *, cwd: Path = ROOT) -> str:
@@ -188,6 +193,7 @@ def release_assets() -> dict[str, Any]:
         "ChipHeatLab-macos-unsigned-hackathon-preview.manifest.json",
         "ChipHeatLab-macos-unsigned-hackathon-preview.zip",
         "ChipHeatLab-macos-unsigned-hackathon-preview.zip.sha256",
+        DEMO_VIDEO_ASSET,
     }
     missing = sorted(expected - assets)
     if missing:
@@ -222,6 +228,7 @@ def release_assets() -> dict[str, Any]:
         zip_bytes=manifest.get("zip_bytes"),
         signed=manifest.get("signed"),
         notarized=manifest.get("notarized"),
+        demo_video_asset=DEMO_VIDEO_ASSET,
     )
 
 
@@ -231,6 +238,8 @@ def human_blockers(require_video: bool) -> dict[str, Any]:
     blockers = []
     if "Demo video: pending recording." in readme or "Demo video: pending recording." in submission:
         blockers.append("demo video URL is still pending")
+    if DEMO_VIDEO_URL not in readme or DEMO_VIDEO_URL not in submission:
+        blockers.append("demo video URL is not linked from README and submission copy")
     if "Status: draft. Founder review is required" in submission:
         blockers.append("submission copy still needs founder review")
     status = "fail" if require_video and blockers else "pass"
