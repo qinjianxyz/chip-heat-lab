@@ -1,0 +1,15 @@
+Chip Heat Lab is a clean room open source demo of engineering simulation for chip design. It is not signoff, not foundry validation, and not a production thermal tool.
+
+The flagship demo is one stylized AI accelerator floorplan. A SwiftUI macOS app sends scenario JSON to a Rust command line solver. Rust computes the heatmap, peak temperature estimate, hotspot centroid, per block maximums, residual, and warnings.
+
+First, the workload changes. A balanced workload spreads heat across the chip. A KV cache heavy workload moves the hotspot toward the memory region, so the design question becomes visible instead of abstract.
+
+Next, SRAM placement changes the field. With clustered SRAM, the memory hotspot concentrates in one region. With spread SRAM, the same simplified workload moves the hotspot and lowers the checked in peak estimate from seventy one point zero eight five Celsius to sixty eight point two three six Celsius.
+
+Cooling still matters, but it is not the whole story. Stronger cooling lowers the peak, while the floorplan still determines where the risk concentrates.
+
+The public site shows the evidence behind the demo. The transient benchmark compares spreading SRAM, stronger cooling, and workload staggering over a bursty trace. The power delivery proxy reuses the same floorplan and power map, and shows dense bumps reducing the droop proxy from sixty seven point five millivolts to forty one point four millivolts.
+
+GBrain is represented by the importable markdown knowledge base for assumptions, references, explanations, and claim boundaries. GStack is represented by the scope lock, engineering review, QA plan, ship checklist, and retro artifacts.
+
+The point is a narrow, honest workflow: one chip design decision, computed by Rust, shown natively, replayed on the web, and backed by tests, benchmarks, and explicit non claims.

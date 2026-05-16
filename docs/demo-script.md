@@ -43,5 +43,10 @@ knowledge page and note that it is reading the GBrain-ready markdown KB index.
   `bash scripts/render_demo_video_draft.sh`. It writes
   `dist/demo-video/chip-heat-lab-demo-draft.mp4` and checks the duration. This
   is a storyboard aid, not the final narrated submission video.
+- For a narrated local fallback using macOS text-to-speech, run
+  `bash scripts/render_narrated_demo_video.sh`. It uses
+  `docs/demo-voiceover.txt` and writes
+  `dist/demo-video/chip-heat-lab-demo-narrated-fallback.mp4`. Founder review is
+  still required before treating it as the submission video.
 - Xcode signing and archive export are packaging steps after the working demo is
   verified locally.

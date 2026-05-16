@@ -38,6 +38,7 @@ bash scripts/verify.sh
 bash scripts/visual_smoke_test.sh
 python3 scripts/submission_readiness_check.py
 bash scripts/render_demo_video_draft.sh
+bash scripts/render_narrated_demo_video.sh
 bash scripts/run_site_demo.sh
 bash scripts/run_macos_demo.sh
 ```
@@ -53,6 +54,10 @@ bash scripts/run_macos_demo.sh
 - Recording dry run: `scripts/render_demo_video_draft.sh` renders a silent
   90-second storyboard MP4 from captured stills under `dist/demo-capture/` and
   `dist/demo-video/`.
+- Narrated fallback: `scripts/render_narrated_demo_video.sh` uses
+  `docs/demo-voiceover.txt` and macOS text-to-speech to render
+  `dist/demo-video/chip-heat-lab-demo-narrated-fallback.mp4` for founder
+  review.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
   `dist/ChipHeatLab.app` for local review. It is unsigned.
 - Release zip: `scripts/package_macos_release.sh hackathon-preview` writes a
