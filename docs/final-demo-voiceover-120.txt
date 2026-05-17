@@ -1,0 +1,40 @@
+Chip Heat Lab is a simplified early-design thermal intuition demo for one
+stylized accelerator floorplan. The project turns that floorplan into an
+end-to-end design-review workflow.
+
+The browser opens with the decision, not just a field image. The clustered SRAM
+baseline fails three simplified checks: steady thermal peak, transient thermal
+dose, and a bounded power-delivery droop proxy. Rust ranks candidate
+interventions and recommends spread SRAM as the lowest-cost passing fix in this
+model.
+
+That is the value for a hardware team. Early in a design review, the question is
+not "is this final approval?" The question is "what should we inspect next?"
+Chip Heat Lab makes the tradeoff concrete: what failed, what passed, what it
+cost, and which assumptions bound the result.
+
+The native macOS app is the flagship demo. SwiftUI owns the interface, but Rust
+owns the backend through JSON. When we switch workload, cooling, or floorplan,
+the heat field and review metrics update from the same Rust command-line
+engine.
+
+The native app also shows why the workflow is more useful than a static
+visualization. Training pushes heat into the MatMul blocks. KV inference makes
+SRAM placement matter. IO-heavy work moves heat toward the SerDes path. The
+review panel keeps those changes tied to constraints, ranked interventions,
+warnings, and per-block maxima.
+
+GBrain is represented by an importable markdown knowledge base. The repo
+includes markdown pages for model assumptions, citations, demo explanations,
+and claim boundaries, and the generated index feeds the app and website.
+
+GStack is the build discipline. The repo includes scope lock, engineering
+review, design review, QA, ship checklist, and retro artifacts, so the process
+is inspectable alongside the code.
+
+This is not production approval. Anvil Sim is the flagship project. Chip Heat
+Lab is the brand-new public clean-room electronics-simulation slice we built for
+this hackathon: one design, three checks, ranked interventions, native demo, web
+replay, benchmarks, explicit limits, and a path to richer geometry, more solver
+families, validation ladders, evidence packs, and real hardware-flow
+integrations.

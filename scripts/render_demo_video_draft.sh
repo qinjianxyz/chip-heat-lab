@@ -12,14 +12,24 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
   exit 1
 fi
 
+bash scripts/visual_smoke_test.sh
+
+NATIVE_REVIEW="dist/visual-proof/native-app.png"
+if ! bash scripts/capture_native_demo_still.sh; then
+  if [[ -f "dist/demo-capture/02-native-kv.png" ]]; then
+    echo "native capture unavailable; using checked local fallback still from dist/demo-capture"
+    NATIVE_REVIEW="dist/demo-capture/02-native-kv.png"
+  else
+    echo "native capture unavailable and no fallback still exists at dist/demo-capture/02-native-kv.png" >&2
+    exit 1
+  fi
+fi
+
 required=(
-  "dist/demo-capture/01-native-balanced.png"
-  "dist/demo-capture/02-native-kv.png"
-  "dist/demo-video/03-kv-clustered.png"
-  "dist/demo-video/04-kv-spread.png"
-  "dist/demo-video/05-cooling.png"
-  "dist/demo-video/01-home.png"
-  "dist/demo-video/02-balanced.png"
+  "dist/visual-proof/home.png"
+  "dist/visual-proof/replay-inference-spread.png"
+  "dist/visual-proof/knowledge.png"
+  "${NATIVE_REVIEW}"
 )
 
 missing=0
@@ -39,15 +49,15 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 images=(
-  "${ROOT}/dist/demo-capture/01-native-balanced.png"
-  "${ROOT}/dist/demo-capture/02-native-kv.png"
-  "${ROOT}/dist/demo-video/03-kv-clustered.png"
-  "${ROOT}/dist/demo-video/04-kv-spread.png"
-  "${ROOT}/dist/demo-video/05-cooling.png"
-  "${ROOT}/dist/demo-video/01-home.png"
-  "${ROOT}/dist/demo-video/02-balanced.png"
+  "${ROOT}/dist/visual-proof/home.png"
+  "${ROOT}/${NATIVE_REVIEW}"
+  "${ROOT}/dist/visual-proof/replay-inference-spread.png"
+  "${ROOT}/dist/visual-proof/knowledge.png"
+  "${ROOT}/${NATIVE_REVIEW}"
+  "${ROOT}/dist/visual-proof/home.png"
+  "${ROOT}/dist/visual-proof/replay-inference-spread.png"
 )
-durations=(10 13 13 13 11 16 14)
+durations=(24 16 12 12 12 8 6)
 
 : >"${TMP}/segments.txt"
 for idx in "${!images[@]}"; do

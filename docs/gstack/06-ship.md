@@ -84,13 +84,15 @@ review must be explainable end to end:
 - Commander QA found the Swift/Rust subprocess path could leave long-lived Rust
   CLI children and fixed the stdout drain order before waiting for process exit.
 - Vercel production deployment is live at <https://chip-heat-lab.vercel.app>
-  and includes the power-delivery proxy section and benchmark JSON.
-- The hackathon preview release is refreshed from main commit
-  `58c3fe72596158db9e973b8cbf6c8d60d3be0fd9` with unsigned app archive,
-  checksum, and manifest assets.
-- The same prerelease includes
-  `chip-heat-lab-demo-narrated-fallback.mp4` as a review candidate. Founder
-  approval is still required before treating it as the submission video.
+  and includes the design-review cockpit, power-delivery proxy section, and
+  benchmark JSON.
+- PR #16, `feat(demo): add chip design review cockpit`, merged after CI and
+  made the design-review workflow the first-viewport story.
+- The hackathon preview release should be refreshed from a commit at or after
+  `3baf97882d26a55cb87ba840e049e9fd0b1f4b1c` with unsigned app archive,
+  checksum, manifest assets, and the final founder-recorded demo video.
+- The final demo video remains a founder recording/upload gate; the repo now
+  carries narration scripts rather than generated audio.
 - GitHub main branch protection is active with strict `verify` status checks
   and force-push/deletion disabled.
 - The next complexity lock is the design-review workflow: steady thermal,
@@ -100,8 +102,8 @@ review must be explainable end to end:
 
 ## Remaining Ship Work
 
-- Founder-review `docs/founder-review-packet.md`, including the narrated
-  fallback video, or record a replacement.
+- Founder-record the final narrated video using
+  `docs/final-demo-narration-script.md`.
 - Founder-review `docs/submission-copy.md`.
 - Paste the approved copy and video URL into the submission form.
 - Do one final visual polish pass only after watching the approved recording.

@@ -1,9 +1,26 @@
 import type { Snapshot } from "../lib/snapshots";
 
-export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
+const blockLabels: Record<string, string> = {
+  "MatMul Array A": "MatMul A",
+  "MatMul Array B": "MatMul B",
+  "SRAM / KV Cache": "SRAM / KV",
+  "NoC Spine": "NoC",
+  "SerDes / IO": "SerDes / IO",
+  Control: "Control",
+};
+
+export function Heatmap({
+  snapshot,
+  sampleStep = 1,
+}: {
+  snapshot: Snapshot;
+  sampleStep?: number;
+}) {
   const cells = [];
-  for (let y = 0; y < snapshot.grid_size; y += 1) {
-    for (let x = 0; x < snapshot.grid_size; x += 1) {
+  const step = Math.max(1, Math.floor(sampleStep));
+  const displayGridSize = Math.ceil(snapshot.grid_size / step);
+  for (let y = 0; y < snapshot.grid_size; y += step) {
+    for (let x = 0; x < snapshot.grid_size; x += step) {
       const value = snapshot.temperature_grid[y][x];
       const t = Math.max(0, Math.min(1, (value - snapshot.ambient_c) / (snapshot.peak_c - snapshot.ambient_c || 1)));
       const red = Math.round(16 + 224 * t);
@@ -22,7 +39,7 @@ export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
     <div className="heatmap-wrap">
       <div
         className="heat-preview"
-        style={{ gridTemplateColumns: `repeat(${snapshot.grid_size}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${displayGridSize}, 1fr)` }}
       >
         {cells}
       </div>
@@ -43,7 +60,7 @@ export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
         {snapshot.floorplan.flatMap((block) =>
           block.rects.map((rect, index) => (
             <div
-              className="floorplan-block"
+              className={`floorplan-block ${rect.width <= 8 ? "narrow-block" : ""}`}
               key={`${block.name}-${index}`}
               style={{
                 left: `${(rect.x / snapshot.grid_size) * 100}%`,
@@ -52,7 +69,7 @@ export function Heatmap({ snapshot }: { snapshot: Snapshot }) {
                 height: `${(rect.height / snapshot.grid_size) * 100}%`,
               }}
             >
-              <span>{block.name}</span>
+              <span>{blockLabels[block.name] ?? block.name}</span>
             </div>
           ))
         )}

@@ -8,9 +8,8 @@ technical readiness checks.
 
 Choose one:
 
-- Approve the narrated fallback video and `docs/submission-copy.md` for the
-  hackathon form.
-- Request a new live narrated recording and list the requested changes.
+- Record or approve the final human-narrated video using
+  `docs/final-demo-narration-script.md`.
 - Request copy edits in `docs/submission-copy.md` before submission.
 
 Do not mark the project submission-ready until this decision is made.
@@ -23,30 +22,39 @@ Do not mark the project submission-ready until this decision is made.
 - Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App preview release:
   <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
-- Demo video candidate:
-  <https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>
+- Final narration script:
+  [`docs/final-demo-narration-script.md`](final-demo-narration-script.md)
 
 ## Technical Readiness Snapshot
 
 Latest verified state:
 
-- Main commit: `3e211c2`
-- Latest main CI: `docs: link demo video candidate (#14)` passed.
+- Main commit: `3baf978`
+- Latest main CI: `feat(demo): add chip design review cockpit (#16)` passed.
 - `python3 scripts/submission_readiness_check.py` reports
   `technical_ready=true`.
-- Release asset `chip-heat-lab-demo-narrated-fallback.mp4` is present and
-  serves with `content-length: 2366738`.
-- Live homepage contains the narrated fallback video link and founder approval
-  caveat.
+- Final demo video upload is still pending founder recording.
+- Live homepage contains the design-review cockpit, GBrain/GStack proof cues,
+  release links, and founder approval caveat.
+
+Latest design-review proof:
+
+- Baseline clustered SRAM fails steady peak, transient dose, and droop proxy
+  constraints.
+- Recommended intervention: `Spread SRAM`.
+- Checked-in benchmark deltas: `2.849 C` peak drop, `9.227 C-s` dose drop,
+  and `17.410 mV` droop-proxy drop.
+- Public Vercel page renders those values from benchmark JSON, not a browser
+  solver.
 
 ## Submission Copy
 
 Use `docs/submission-copy.md` as the source of truth. The short description is:
 
-> Chip Heat Lab is a clean-room open-source demo of engineering simulation for
-> chip design: a Rust thermal solver, a bounded power-delivery proxy, a
-> double-clickable SwiftUI app, and a Vercel replay that make early floorplan
-> and workload tradeoffs visible.
+> Chip Heat Lab is a simplified early-design thermal intuition demo for one
+> stylized accelerator floorplan: a Rust thermal solver, a bounded
+> power-delivery proxy, a double-clickable SwiftUI app, and a Vercel replay that
+> make early floorplan and workload tradeoffs visible.
 
 Boundary sentence:
 

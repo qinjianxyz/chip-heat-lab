@@ -161,18 +161,6 @@ Expected signal:
 
 - `dist/demo-video/chip-heat-lab-demo-draft.mp4` is about 90 seconds.
 - The draft is silent and generated from captured stills; it does not replace
-  the final narrated demo video.
-
-For a narrated local fallback:
-
-```bash
-bash scripts/render_narrated_demo_video.sh
-ffprobe -v error -show_entries format=duration,size -of json dist/demo-video/chip-heat-lab-demo-narrated-fallback.mp4
-```
-
-Expected signal:
-
-- The fallback MP4 has a voiceover and is within the 90-second storyboard
-  window.
-- The voiceover text lives in `docs/demo-voiceover.txt`.
-- Founder review is still required before using this as the submission video.
+  the final human-narrated demo video.
+- The narration text lives in `docs/final-demo-narration-script.md` and the
+  60/90/120-second standalone text files.

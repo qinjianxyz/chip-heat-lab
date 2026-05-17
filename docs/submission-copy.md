@@ -5,10 +5,10 @@ submission form.
 
 ## Short Description
 
-Chip Heat Lab is a clean-room open-source demo of engineering simulation for
-chip design: a Rust thermal solver, a bounded power-delivery proxy, a
-double-clickable SwiftUI app, and a Vercel replay that make early floorplan and
-workload tradeoffs visible.
+Chip Heat Lab is a simplified early-design thermal intuition demo for chip
+design: a Rust thermal solver, a bounded power-delivery proxy, a
+double-clickable SwiftUI app, and a Vercel replay that make one stylized
+floorplan and workload tradeoff visible as a design-review decision.
 
 ## Longer Description
 
@@ -41,6 +41,13 @@ thermal/droop hotspot overlap. In the checked-in benchmark, dense bumps reduce
 the nominal KV clustered droop proxy from `67.534 mV` to `41.438 mV`, while
 spread SRAM with nominal bumps reduces it to `50.124 mV`.
 
+The composed design-review benchmark is the flagship workflow. The baseline
+clustered-SRAM KV-cache case fails simplified peak, thermal-dose, and droop
+constraints. Rust ranks six interventions and recommends `Spread SRAM` as the
+lowest-cost passing candidate, lowering the checked-in peak estimate by
+`2.849 C`, transient dose by `9.227 C-s`, and droop proxy by `17.410 mV`.
+That makes the result useful as a review artifact, not just a visualization.
+
 GBrain is used as an importable markdown knowledge base for assumptions,
 references, demo explanations, and claim boundaries, and the Vercel site exposes
 that generated index as a knowledge page. GStack is visible in the repo as
@@ -48,6 +55,10 @@ office-hours, scope-lock, engineering review, design review, QA, ship, and
 retro artifacts. The point is not to claim a production engineering tool; the
 point is to show a useful, honest, end-to-end simulation demo with assumptions,
 tests, quiet visual smoke proof, and artifacts that judges can inspect.
+
+Anvil Sim is the broader flagship project. Chip Heat Lab is the new public
+clean-room electronics-simulation slice built for this hackathon: benchmarked,
+bounded, and intentionally small enough to inspect.
 
 ## Links
 
@@ -57,8 +68,9 @@ tests, quiet visual smoke proof, and artifacts that judges can inspect.
 - Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App preview release:
   <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
-- Demo video candidate:
-  <https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>
+- Demo video: pending recording.
+- Final narration script:
+  <https://github.com/qinjianxyz/chip-heat-lab/blob/main/docs/final-demo-narration-script.md>
 
 ## Boundary Sentence
 

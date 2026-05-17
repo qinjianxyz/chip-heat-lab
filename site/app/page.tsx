@@ -14,7 +14,10 @@ import { loadValueBenchmark } from "../lib/valueBenchmark";
 
 export default function HomePage() {
   const snapshots = loadSnapshots();
-  const heroSnapshot = snapshots[0]?.snapshot;
+  const heroSnapshot =
+    snapshots.find((item) => item.name === "inference_spread")?.snapshot ??
+    snapshots.find((item) => item.name === "inference_clustered")?.snapshot ??
+    snapshots[0]?.snapshot;
   const designReview = loadDesignReview();
   const benchmark = loadValueBenchmark();
   const transient = loadTransientBenchmark();
@@ -31,6 +34,12 @@ export default function HomePage() {
   const powerBaseline = power?.cases.kv_clustered_nominal;
   const powerDense = power?.cases.kv_clustered_dense;
   const powerSpread = power?.cases.kv_spread_nominal;
+  const steadyDelta =
+    baseline && recommended ? baseline.steady_peak_c - recommended.steady_peak_c : undefined;
+  const droopDelta =
+    baseline && recommended ? baseline.worst_droop_mv - recommended.worst_droop_mv : undefined;
+  const doseDelta =
+    baseline && recommended ? baseline.thermal_dose_c_s - recommended.thermal_dose_c_s : undefined;
   const metricValue = (value: number | undefined, digits = 1, suffix = "") =>
     typeof value === "number" ? `${value.toFixed(digits)}${suffix}` : "--";
   const reviewInputLayers = [
@@ -64,7 +73,7 @@ export default function HomePage() {
     {
       label: "Proof + non-claims",
       metric: designReview ? `${designReview.ranked_candidates.length} candidates` : "GBrain / GStack",
-      detail: "KB citations, QA, ship checklist",
+      detail: "assumption KB, QA, ship checklist",
       variant: "proof",
     },
   ];
@@ -82,8 +91,8 @@ export default function HomePage() {
           </p>
           <div className="hero-status-strip" aria-label="Proof cues">
             <span>Rust solver JSON</span>
-            <span>GBrain assumption KB</span>
-            <span>GStack QA artifacts</span>
+            <span>Assumption KB (GBrain)</span>
+            <span>Review/QA/ship artifacts (GStack)</span>
           </div>
           {designReview ? (
             <div className="decision-panel">
@@ -119,19 +128,19 @@ export default function HomePage() {
                 <div className="physics-metric-grid">
                   <div>
                     <strong>{metricValue(recommended.max_gradient_c_per_cell)}</strong>
-                    <span>max thermal gradient C/cell</span>
+                    <span>max gradient C/cell</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.hotspot_path_distance_cells)}</strong>
-                    <span>hotspot path cells</span>
+                    <span>hotspot travel cells</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.thermal_pdn_distance_cells)}</strong>
-                    <span>thermal-PDN distance cells</span>
+                    <span>thermal-PDN gap cells</span>
                   </div>
                   <div>
                     <strong>{metricValue(recommended.risk_utilization?.worst_droop, 2, "x")}</strong>
-                    <span>droop limit utilization</span>
+                    <span>droop utilization</span>
                   </div>
                 </div>
               ) : null}
@@ -156,10 +165,19 @@ export default function HomePage() {
             <div className="cockpit-visual-stack">
               <div className="demo-shell compact-heatmap">
                 <div className="demo-head">
-                  <span>Rust snapshot replay</span>
+                  <span>Recommended field: spread SRAM</span>
                   <span>{heroSnapshot ? `${heroSnapshot.peak_c.toFixed(1)} C peak` : "export snapshots"}</span>
                 </div>
-                {heroSnapshot ? <Heatmap snapshot={heroSnapshot} /> : <div className="section">Run `bash scripts/export_snapshots.sh`.</div>}
+                {heroSnapshot ? (
+                  <Heatmap snapshot={heroSnapshot} sampleStep={2} />
+                ) : (
+                  <div className="section">Run `bash scripts/export_snapshots.sh`.</div>
+                )}
+                <div className="field-delta-strip" aria-label="Design review deltas">
+                  <span>{metricValue(steadyDelta)} C peak drop</span>
+                  <span>{metricValue(doseDelta)} C-s dose drop</span>
+                  <span>{metricValue(droopDelta)} mV droop drop</span>
+                </div>
               </div>
               <div className="model-stack-panel" aria-label="Review input stack">
                 <div className="model-stack-title">
@@ -216,8 +234,8 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="proof-rail" aria-label="Knowledge and process proof">
-                  <span>GBrain cites assumptions and non-claims</span>
-                  <span>GStack scope / QA / ship docs committed</span>
+                  <span>Assumption KB cites non-claims (GBrain-ready)</span>
+                  <span>Scope / QA / ship docs committed (GStack)</span>
                   <span>Browser renders benchmark JSON only</span>
                 </div>
               </div>
@@ -417,22 +435,24 @@ export default function HomePage() {
       </section>
 
       <section className="section">
-        <p className="eyebrow">GBrain / GStack</p>
+        <p className="eyebrow">Knowledge + Ship Discipline</p>
         <h2>Inspectable Build System</h2>
         <div className="grid">
           <div className="card">
-            <h3>GBrain KB</h3>
+            <h3>Assumption KB</h3>
             <p>
               The app and site read generated KB JSON from markdown assumptions,
-              references, demo explanations, and claim boundaries.
+              references, demo explanations, and claim boundaries. It is ready
+              to import into GBrain.
             </p>
             <p><Link href="/knowledge">Browse the knowledge base</Link></p>
           </div>
           <div className="card">
-            <h3>GStack Artifacts</h3>
+            <h3>Review Artifacts</h3>
             <p>
               Scope lock, engineering review, design review, QA, ship checklist,
-              and retro live in the repo so the build process is inspectable.
+              and retro live in the repo as GStack-style artifacts, so the build
+              process is inspectable.
             </p>
           </div>
           <div className="card">
@@ -450,12 +470,11 @@ export default function HomePage() {
         <h2>Submission Surfaces</h2>
         <div className="grid">
           <div className="card">
-            <h3>Demo Video</h3>
+            <h3>Recording Script</h3>
             <p>
-              Review the narrated fallback video from the{" "}
-              <a href="https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4">GitHub prerelease</a>.
-              Founder approval is still required before treating it as the
-              submission video.
+              Use the founder-read{" "}
+              <a href="https://github.com/qinjianxyz/chip-heat-lab/blob/main/docs/final-demo-narration-script.md">final narration script</a>{" "}
+              with the browser, native app, and knowledge-system recording path.
             </p>
           </div>
           <div className="card">

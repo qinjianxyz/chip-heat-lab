@@ -1,0 +1,23 @@
+Chip Heat Lab is a simplified early-design thermal intuition demo for one
+stylized accelerator floorplan and one design-review question.
+
+The baseline clustered SRAM case fails simplified steady thermal, transient
+dose, and power-delivery droop checks. Rust recommends spread SRAM as the
+lowest-cost passing fix.
+
+The value is the decision packet: what failed, what passed, what it cost, and
+what assumptions bound the result.
+
+The native macOS app runs the same Rust backend through JSON. Toggling workload
+and floorplan changes the field and review metrics.
+
+A different workload phase moves heat toward IO, so this is interactive, not a
+pre-rendered heatmap.
+
+GBrain is represented by an importable markdown knowledge base: model pages,
+references, explanations, and claim boundaries feed the app and site.
+
+GStack documents the build discipline: scope, review, QA, ship, and retro.
+
+Anvil Sim is the flagship. Chip Heat Lab is the new public clean-room
+electronics slice: benchmarks, explicit limits, and a roadmap to deeper solvers.
