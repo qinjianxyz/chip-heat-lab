@@ -35,10 +35,12 @@ assumptions, citations, explanations, and claim boundaries are exported into
 the app and site.
 
 GStack kept the build narrow and shippable: scope lock, engineering review,
-QA, ship checklist, and retro are committed. This public repo is the smallest
-honest wedge for a future production system that could go deeper with richer
-geometry, more solver families, validation ladders, evidence packs, and
-hardware-flow integrations.
+QA, ship checklist, and retro are committed.
+
+End cap: Anvil Sim is the flagship project. Chip Heat Lab is the brand-new
+public clean-room electronics-simulation slice we built for this hackathon:
+benchmarks, explicit limits, and a path to richer geometry, more solver
+families, validation ladders, evidence packs, and hardware-flow integrations.
 
 ## 60-Second Cut
 
@@ -58,8 +60,8 @@ and floorplan changes the field and review metrics.
 GBrain is represented by an importable markdown knowledge base, and GStack
 documents the build discipline: scope, review, QA, ship, and retro.
 
-This is the smallest honest wedge: one design, three checks, ranked
-interventions, native demo, web replay, and explicit assumptions.
+Anvil Sim is the flagship. Chip Heat Lab is the new public clean-room
+electronics slice: benchmarks, explicit limits, and a roadmap to deeper solvers.
 
 ## Two-Minute Cut
 

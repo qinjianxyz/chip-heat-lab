@@ -56,6 +56,10 @@ retro artifacts. The point is not to claim a production engineering tool; the
 point is to show a useful, honest, end-to-end simulation demo with assumptions,
 tests, quiet visual smoke proof, and artifacts that judges can inspect.
 
+Anvil Sim is the broader flagship project. Chip Heat Lab is the new public
+clean-room electronics-simulation slice built for this hackathon: benchmarked,
+bounded, and intentionally small enough to inspect.
+
 ## Links
 
 - GitHub: <https://github.com/qinjianxyz/chip-heat-lab>

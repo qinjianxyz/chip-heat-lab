@@ -32,6 +32,14 @@ team review workflows, and integrations with real hardware design flows. This
 repo stays honest by showing the smallest useful version without borrowing
 private code or claiming production validation.
 
+## Relationship To Anvil Sim
+
+Anvil Sim is the broader flagship project. Chip Heat Lab is a brand-new public
+clean-room electronics-simulation slice built for this hackathon: no private
+Anvil Sim solvers, source, assets, or architecture were reused. The point of
+this repo is to show one benchmarked chip-design review workflow with explicit
+limits, then make the improvement path obvious.
+
 ## Why Hardware Teams Care
 
 Early chip-design reviews are full of "what should we inspect next?" decisions:

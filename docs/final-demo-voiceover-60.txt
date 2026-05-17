@@ -18,6 +18,6 @@ GBrain is represented by an importable markdown knowledge base: model pages,
 references, explanations, and claim boundaries feed the app and site.
 
 GStack documents the build discipline: scope, review, QA, ship, and retro.
-This is the smallest honest wedge. A future production system could go deeper
-with richer geometry, more solver families, validation ladders, evidence packs,
-and hardware-flow integrations.
+
+Anvil Sim is the flagship. Chip Heat Lab is the new public clean-room
+electronics slice: benchmarks, explicit limits, and a roadmap to deeper solvers.

@@ -133,8 +133,9 @@ Show: README or `docs/gstack/`.
 Voice:
 
 > GStack kept the build narrow and shippable: scope lock, engineering review,
-> design review, QA, ship checklist, and retro are committed. This is the
-> smallest honest wedge for a future production system that could go deeper.
+> design review, QA, ship checklist, and retro are committed. Anvil Sim is the
+> flagship; Chip Heat Lab is the new public clean-room electronics slice we
+> built for this hackathon.
 
 Close:
 
@@ -241,6 +242,7 @@ Voice:
 >
 > This is not production validation. It is the smallest honest wedge: one
 > design, three checks, ranked interventions, native demo, web replay, and
-> explicit assumptions. A future production system could go deeper with richer
-> geometry, more solver families, validation ladders, evidence packs, and real
-> hardware-flow integrations.
+> explicit assumptions. Anvil Sim is the flagship; Chip Heat Lab is the new
+> public clean-room electronics slice: benchmarks, explicit limits, and a
+> roadmap to richer geometry, more solvers, validation ladders, evidence packs,
+> and real hardware-flow integrations.

@@ -63,7 +63,7 @@ segments, the GBrain knowledge close, and the GStack/process browser card.
 | 48-60s | `demo2.mov` 30-42s | Native ranked interventions, warnings, per-block table | "The native review panel keeps the result framed as an engineering tradeoff: constraints, ranked interventions, warnings, and per-block maxima." |
 | 60-68s | `demo2.mov` 40-48s | Native assumptions and non-claims panel | "The app also keeps the assumptions and non-claims visible beside the field." |
 | 68-82s | `demo3.mov` 0-14s | Knowledge base, assumptions, design-review workflow, claim boundaries | "GBrain is the assumption system: markdown pages for model assumptions, citations, explanations, and claim boundaries are exported into the app and site." |
-| 82-88s | `demo1.mov` 22-28s | Inspectable build system / GStack artifacts | "GStack kept the build narrow and shippable: scope lock, engineering review, QA, ship checklist, and retro are committed." |
+| 82-90s | Anvil page or `demo1.mov` 22-28s | Anvil flagship context or GStack artifacts | "Anvil Sim is the flagship; Chip Heat Lab is the new public clean-room electronics slice we built for this hackathon: benchmarks, explicit limits, and a roadmap to deeper solvers." |
 
 ## Tight 60-Second Cut
 
@@ -78,7 +78,7 @@ leaves a few seconds of buffer for a title card or upload trimming.
 | 30-38s | `demo2.mov` 18-26s | IO burst / SerDes heat path | "A different workload phase moves heat toward IO, so the demo is interactive, not a pre-rendered heatmap." |
 | 38-44s | `demo2.mov` 30-36s | Ranked interventions in native review panel | "The result stays framed as a decision packet: constraints, ranked interventions, and warnings." |
 | 44-54s | `demo3.mov` 0-10s | Knowledge page and design-review workflow KB cards | "GBrain is the assumption system: model pages, references, explanations, and claim boundaries feed the app and site." |
-| 54-58s | `demo1.mov` 22-26s | Inspectable build system | "GStack documents the build discipline: scope, review, QA, ship, and retro." |
+| 54-60s | Anvil page or `demo1.mov` 22-26s | Flagship context or inspectable build system | "Anvil Sim is the flagship; Chip Heat Lab is the new public clean-room electronics slice: benchmarks, explicit limits, and a roadmap to deeper solvers." |
 
 ## Full 95-Second Cut
 

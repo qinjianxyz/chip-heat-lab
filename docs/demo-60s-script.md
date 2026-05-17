@@ -68,9 +68,9 @@ Show README or docs/gstack.
 
 Voice:
 "GStack kept the project narrow: scope lock, engineering review, QA, ship, and
-retro are committed. This public repo is the smallest honest wedge. A future
-production system could go deeper with richer geometry, more solver families,
-validation ladders, evidence packs, and hardware-flow integrations."
+retro are committed. Anvil Sim is the flagship; Chip Heat Lab is the new public
+clean-room electronics slice: benchmarks, explicit limits, and a roadmap to
+deeper solvers."
 
 Close:
 "One design, three checks, ranked interventions, native demo, web replay, and

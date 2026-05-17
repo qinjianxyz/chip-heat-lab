@@ -32,8 +32,9 @@ GStack is the build discipline. The repo includes scope lock, engineering
 review, design review, QA, ship checklist, and retro artifacts, so the process
 is inspectable alongside the code.
 
-This is not production approval. It is the smallest honest wedge: one design,
-three checks, ranked interventions, native demo, web replay, importable
-assumptions, and committed shipping discipline. A future production system
-could take this pattern into richer geometry, more solver families, validation
-ladders, evidence packs, and real hardware-flow integrations.
+This is not production approval. Anvil Sim is the flagship project. Chip Heat
+Lab is the brand-new public clean-room electronics-simulation slice we built for
+this hackathon: one design, three checks, ranked interventions, native demo, web
+replay, benchmarks, explicit limits, and a path to richer geometry, more solver
+families, validation ladders, evidence packs, and real hardware-flow
+integrations.
