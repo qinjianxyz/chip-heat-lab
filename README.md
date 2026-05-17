@@ -2,6 +2,8 @@
 
 **Engineering simulation for chip design, shown as one simplified early-design design-review demo.**
 
+![Chip Heat Lab design-review cockpit](docs/assets/chip-heat-lab-cockpit.png)
+
 ## Pitch
 
 Hardware teams do not need another pretty heatmap in isolation. They need a
@@ -12,27 +14,46 @@ assumptions make the answer trustworthy.
 **Chip Heat Lab** is that workflow in miniature. For one stylized AI accelerator
 floorplan, Rust computes steady thermal risk, transient thermal dose, and a
 bounded power-delivery droop proxy, then ranks candidate interventions against
-explicit demo constraints. The macOS app gives the live native demo; the Vercel
-site gives the public replay; GBrain makes the assumptions inspectable; GStack
-shows the scope, review, QA, and ship discipline behind the hackathon build.
+explicit demo constraints.
+
+The deliverable is end to end:
+
+- a native macOS SwiftUI app that calls the Rust CLI through JSON,
+- a Vercel replay that renders exported Rust snapshots and benchmark files,
+- a GBrain-ready assumption knowledge base for citations and claim boundaries,
+- GStack-style scope, review, QA, ship, and retro artifacts,
+- deterministic tests, benchmarks, visual smoke checks, and release scripts.
 
 This is intentionally not the full product. It is a clean-room public wedge:
-one narrow design-review artifact that proves the shape of value. A full Anvil
-Sim-style product can be much deeper: richer geometry ingestion, more solver
+one narrow design-review artifact that proves the shape of value. A future
+production system could go much deeper: richer geometry ingestion, more solver
 families, validation ladders against reference cases, native evidence packs,
 team review workflows, and integrations with real hardware design flows. This
 repo stays honest by showing the smallest useful version without borrowing
 private code or claiming production validation.
 
-Chip Heat Lab is a clean-room OSS hackathon repo that demonstrates one stylized
-AI accelerator floorplan. A Rust CLI solves fixed 96x96 steady and transient
-thermal hotspot models, a simplified power-delivery proxy, and a composed
-design-review workflow that ranks candidate interventions against demo
-constraints. A macOS SwiftUI app runs the Rust CLI through stdin/stdout JSON,
-and a Next.js site replays exported solver snapshots and benchmark results. The
-project is intentionally narrow: it helps a viewer understand how workload,
-power, cooling, SRAM placement, burst scheduling, and a simple droop proxy can
-change early design risk in one concept model.
+## Why Hardware Teams Care
+
+Early chip-design reviews are full of "what should we inspect next?" decisions:
+floorplan placement, bursty workload behavior, cooling budget, and power
+delivery tradeoffs are coupled, but teams still need a crisp next action before
+running heavier tools. Chip Heat Lab turns one such question into a small,
+auditable review packet:
+
+- **Design question:** can spreading SRAM reduce KV-cache hotspot risk before
+  changing the cooling budget?
+- **Computed evidence:** steady thermal peak, transient thermal dose,
+  power-delivery droop proxy, hotspot movement, and ranked candidates.
+- **Decision output:** the lowest-cost passing intervention for the simplified
+  constraints.
+- **Trust surface:** deterministic Rust benchmarks, native replay, generated
+  knowledge index, explicit non-claims, and committed review/QA artifacts.
+
+The value is not final accuracy. The value is reducing ambiguity in an early
+review: make the tradeoff visible, make the assumptions inspectable, and make
+the next engineering conversation concrete.
+
+## Flagship Workflow
 
 The flagship value loop is deliberately decision-shaped:
 
@@ -57,8 +78,7 @@ passing intervention for this clean-room model.
 - Replay: <https://chip-heat-lab.vercel.app/replay>
 - Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App release: <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
-- Demo video candidate:
-  <https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>
+- Final narration script: [`docs/final-demo-narration-script.md`](docs/final-demo-narration-script.md)
 
 ## What You Can Demo In 90 Seconds
 
@@ -95,7 +115,10 @@ bash scripts/verify.sh
 bash scripts/visual_smoke_test.sh
 python3 scripts/submission_readiness_check.py
 bash scripts/render_demo_video_draft.sh
-bash scripts/render_narrated_demo_video.sh
+bash scripts/prepare_recording_session.sh
+bash scripts/stitch_founder_demo.sh 60 <browser.mov> <native.mov> <knowledge.mov>
+bash scripts/stitch_founder_demo.sh 90 <browser.mov> <native.mov> <knowledge.mov>
+bash scripts/stitch_founder_demo.sh 120 <browser.mov> <native.mov> <knowledge.mov>
 bash scripts/run_site_demo.sh
 bash scripts/run_macos_demo.sh
 ```
@@ -111,10 +134,16 @@ bash scripts/run_macos_demo.sh
 - Recording dry run: `scripts/render_demo_video_draft.sh` renders a silent
   90-second storyboard MP4 from captured stills under `dist/demo-capture/` and
   `dist/demo-video/`.
-- Narrated fallback: `scripts/render_narrated_demo_video.sh` uses
-  `docs/demo-voiceover.txt` and macOS text-to-speech to render
-  `dist/demo-video/chip-heat-lab-demo-narrated-fallback.mp4` for founder
-  review.
+- Manual recording prep: `scripts/prepare_recording_session.sh` opens the
+  public site, replay, knowledge page, and native app, then leaves them ready
+  for a live screen recording. Use `scripts/prepare_recording_session.sh local`
+  for a local web server. Stop local mode or quit the app with
+  `scripts/stop_recording_session.sh`.
+- Founder clip stitcher: `scripts/stitch_founder_demo.sh 60|90|120|raw`
+  is an optional local helper for pre-recorded browser, native, and knowledge
+  clips; pass the three `.mov` paths as arguments or set the
+  `CHIP_HEAT_LAB_DEMO1..3` environment variables. See
+  `docs/final-demo-edit-plan.md`.
 - Double-click bundle: `scripts/bundle_macos_app.sh` writes
   `dist/ChipHeatLab.app` for local review. It is unsigned.
 - Release zip: `scripts/package_macos_release.sh hackathon-preview` writes a
@@ -136,6 +165,17 @@ bash scripts/run_macos_demo.sh
 - `docs/submission-copy.md` - founder-review draft copy for the hackathon form.
 - `docs/founder-review-packet.md` - final approval packet for the video
   candidate, submission copy, and remaining human gate.
+- `docs/demo-recording-runbook.md` - final human recording script with
+  web-first and native-first options.
+- `docs/final-demo-narration-script.md` - the founder-read narration script for
+  the final submission recording.
+- `docs/final-demo-edit-plan.md` - edit timing, voiceover, and 60/90/raw cut
+  plan for the founder-recorded clips.
+- `docs/final-demo-voiceover-60.txt`, `docs/final-demo-voiceover-90.txt`, and
+  `docs/final-demo-voiceover-120.txt` - standalone narration scripts for the
+  founder-recorded cuts.
+- `docs/demo-60s-script.md` - one-minute recording script for the web, native
+  app, replay, knowledge, and GStack/GBrain story.
 
 ## Quick Start
 

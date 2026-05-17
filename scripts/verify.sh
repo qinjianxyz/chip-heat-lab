@@ -9,6 +9,10 @@ fi
 
 cd "${ROOT}"
 
+echo "== script syntax =="
+find scripts -name "*.sh" -print0 | xargs -0 -n1 bash -n
+python3 -m py_compile scripts/*.py
+
 echo "== rust tests =="
 "${CARGO_BIN}" test --quiet
 

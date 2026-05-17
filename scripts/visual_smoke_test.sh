@@ -74,7 +74,7 @@ check_page() {
   done
 }
 
-check_page "/" "Design review cockpit" "Flagship Workflow" "Power Delivery Proxy" "Inspectable Build System" "narrated fallback video"
+check_page "/" "Design review cockpit" "Flagship Workflow" "Power Delivery Proxy" "Inspectable Build System" "final narration script"
 check_page "/knowledge" "Knowledge Base" "Design Review Workflow" "Power Delivery Proxy" "GBrain-ready knowledge system"
 check_page "/replay?snapshot=inference_spread" "inference_spread" "Replay"
 

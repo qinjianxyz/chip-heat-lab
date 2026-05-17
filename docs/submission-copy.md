@@ -5,10 +5,10 @@ submission form.
 
 ## Short Description
 
-Chip Heat Lab is a clean-room open-source demo of engineering simulation for
-chip design: a Rust thermal solver, a bounded power-delivery proxy, a
-double-clickable SwiftUI app, and a Vercel replay that make early floorplan and
-workload tradeoffs visible as a design-review decision.
+Chip Heat Lab is a simplified early-design thermal intuition demo for chip
+design: a Rust thermal solver, a bounded power-delivery proxy, a
+double-clickable SwiftUI app, and a Vercel replay that make one stylized
+floorplan and workload tradeoff visible as a design-review decision.
 
 ## Longer Description
 
@@ -64,8 +64,9 @@ tests, quiet visual smoke proof, and artifacts that judges can inspect.
 - Knowledge base: <https://chip-heat-lab.vercel.app/knowledge>
 - App preview release:
   <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>
-- Demo video candidate:
-  <https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>
+- Demo video: pending recording.
+- Final narration script:
+  <https://github.com/qinjianxyz/chip-heat-lab/blob/main/docs/final-demo-narration-script.md>
 
 ## Boundary Sentence
 

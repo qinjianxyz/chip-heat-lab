@@ -7,11 +7,9 @@ design-review benchmark. PR #16 merged the design-review cockpit on
 2026-05-16, main CI passed, and the Vercel site was refreshed at
 <https://chip-heat-lab.vercel.app>. Main branch protection is active with
 strict `verify` status checks and force-push/deletion disabled. The unsigned
-macOS preview archive and narrated fallback demo video live on the hackathon
-preview release:
+macOS preview archive lives on the hackathon preview release:
 <https://github.com/qinjianxyz/chip-heat-lab/releases/tag/v0.1.0-hackathon-preview>.
-The video URL is:
-<https://github.com/qinjianxyz/chip-heat-lab/releases/download/v0.1.0-hackathon-preview/chip-heat-lab-demo-narrated-fallback.mp4>.
+The final human-narrated demo video is still a founder recording/upload gate.
 
 Scope lock: do not open another physics/model lane before recording. The demo
 story is now a design-review cockpit: steady thermal, transient workload
@@ -30,9 +28,9 @@ What assumption/non-claim explains the result?
 
 ## P0 Before Submission
 
-1. Founder-review `docs/founder-review-packet.md`, including the narrated
-   fallback video. If the video is not good enough, record a live narrated
-   replacement from the native macOS app and public Vercel site.
+1. Founder-record the final narrated demo using
+   `docs/final-demo-narration-script.md`, the native macOS app, and the public
+   Vercel site.
 2. Founder-review `docs/submission-copy.md` and paste the approved version into
    the submission form.
 3. Do one visual polish pass after watching the approved recording, with the

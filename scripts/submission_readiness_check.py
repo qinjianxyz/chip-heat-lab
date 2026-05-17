@@ -17,7 +17,7 @@ REPO = "qinjianxyz/chip-heat-lab"
 SITE = "https://chip-heat-lab.vercel.app"
 RELEASE_TAG = "v0.1.0-hackathon-preview"
 DESIGN_REVIEW_COMMIT = "3baf97882d26a55cb87ba840e049e9fd0b1f4b1c"
-DEMO_VIDEO_ASSET = "chip-heat-lab-demo-narrated-fallback.mp4"
+DEMO_VIDEO_ASSET = "chip-heat-lab-final-demo.mp4"
 DEMO_VIDEO_URL = (
     "https://github.com/qinjianxyz/chip-heat-lab/releases/download/"
     f"{RELEASE_TAG}/{DEMO_VIDEO_ASSET}"
@@ -127,7 +127,7 @@ def live_site() -> dict[str, Any]:
         "Design review cockpit",
         "Power Delivery Proxy",
         "Flagship Workflow",
-        "GitHub prerelease",
+        "final narration script",
         "67.5",
         "41.4",
     ]:
@@ -266,7 +266,7 @@ def public_kb() -> dict[str, Any]:
     return ok("public_kb", count=len(entries))
 
 
-def release_assets() -> dict[str, Any]:
+def release_assets(require_video: bool) -> dict[str, Any]:
     payload = run(
         [
             "gh",
@@ -285,8 +285,9 @@ def release_assets() -> dict[str, Any]:
         "ChipHeatLab-macos-unsigned-hackathon-preview.manifest.json",
         "ChipHeatLab-macos-unsigned-hackathon-preview.zip",
         "ChipHeatLab-macos-unsigned-hackathon-preview.zip.sha256",
-        DEMO_VIDEO_ASSET,
     }
+    if require_video:
+        expected.add(DEMO_VIDEO_ASSET)
     missing = sorted(expected - assets)
     if missing:
         return fail("release_assets", "release is missing expected assets", missing=missing)
@@ -309,8 +310,23 @@ def release_assets() -> dict[str, Any]:
         )
         manifest = json.loads((tmp_path / "ChipHeatLab-macos-unsigned-hackathon-preview.manifest.json").read_text())
     manifest_commit = str(manifest.get("git_commit"))
-    run(["git", "merge-base", "--is-ancestor", manifest_commit, "HEAD"])
-    run(["git", "merge-base", "--is-ancestor", DESIGN_REVIEW_COMMIT, manifest_commit])
+    try:
+        run(["git", "merge-base", "--is-ancestor", manifest_commit, "HEAD"])
+    except subprocess.CalledProcessError:
+        return fail(
+            "release_assets",
+            "release manifest commit is not an ancestor of the checked public head",
+            manifest_commit=manifest_commit,
+        )
+    try:
+        run(["git", "merge-base", "--is-ancestor", DESIGN_REVIEW_COMMIT, manifest_commit])
+    except subprocess.CalledProcessError:
+        return fail(
+            "release_assets",
+            "release manifest predates the design-review cockpit",
+            manifest_commit=manifest_commit,
+            required_commit=DESIGN_REVIEW_COMMIT,
+        )
     if data.get("body", "").find(manifest_commit) < 0:
         return fail("release_assets", "release notes do not mention the manifest commit", manifest_commit=manifest_commit)
     return ok(
@@ -330,7 +346,7 @@ def human_blockers(require_video: bool) -> dict[str, Any]:
     blockers = []
     if "Demo video: pending recording." in readme or "Demo video: pending recording." in submission:
         blockers.append("demo video URL is still pending")
-    if DEMO_VIDEO_URL not in readme or DEMO_VIDEO_URL not in submission:
+    if require_video and (DEMO_VIDEO_URL not in readme or DEMO_VIDEO_URL not in submission):
         blockers.append("demo video URL is not linked from README and submission copy")
     if "Status: draft. Founder review is required" in submission:
         blockers.append("submission copy still needs founder review")
@@ -374,7 +390,7 @@ def main() -> int:
                 live_site(),
                 public_benchmarks(),
                 public_kb(),
-                release_assets(),
+                release_assets(args.require_video),
                 human_blockers(args.require_video),
             ]
         )

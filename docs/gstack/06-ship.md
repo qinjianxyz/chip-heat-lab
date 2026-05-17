@@ -90,10 +90,9 @@ review must be explainable end to end:
   made the design-review workflow the first-viewport story.
 - The hackathon preview release should be refreshed from a commit at or after
   `3baf97882d26a55cb87ba840e049e9fd0b1f4b1c` with unsigned app archive,
-  checksum, manifest assets, and the latest narrated fallback video.
-- The same prerelease includes
-  `chip-heat-lab-demo-narrated-fallback.mp4` as a review candidate. Founder
-  approval is still required before treating it as the submission video.
+  checksum, manifest assets, and the final founder-recorded demo video.
+- The final demo video remains a founder recording/upload gate; the repo now
+  carries narration scripts rather than generated audio.
 - GitHub main branch protection is active with strict `verify` status checks
   and force-push/deletion disabled.
 - The next complexity lock is the design-review workflow: steady thermal,
@@ -103,8 +102,8 @@ review must be explainable end to end:
 
 ## Remaining Ship Work
 
-- Founder-review `docs/founder-review-packet.md`, including the narrated
-  fallback video, or record a replacement.
+- Founder-record the final narrated video using
+  `docs/final-demo-narration-script.md`.
 - Founder-review `docs/submission-copy.md`.
 - Paste the approved copy and video URL into the submission form.
 - Do one final visual polish pass only after watching the approved recording.

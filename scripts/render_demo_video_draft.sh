@@ -15,17 +15,21 @@ fi
 bash scripts/visual_smoke_test.sh
 
 NATIVE_REVIEW="dist/visual-proof/native-app.png"
-if [[ ! -f "${NATIVE_REVIEW}" ]]; then
-  NATIVE_REVIEW="dist/demo-capture/02-native-kv.png"
+if ! bash scripts/capture_native_demo_still.sh; then
+  if [[ -f "dist/demo-capture/02-native-kv.png" ]]; then
+    echo "native capture unavailable; using checked local fallback still from dist/demo-capture"
+    NATIVE_REVIEW="dist/demo-capture/02-native-kv.png"
+  else
+    echo "native capture unavailable and no fallback still exists at dist/demo-capture/02-native-kv.png" >&2
+    exit 1
+  fi
 fi
-NATIVE_INTERACTIVE="dist/demo-capture/01-native-balanced.png"
 
 required=(
   "dist/visual-proof/home.png"
   "dist/visual-proof/replay-inference-spread.png"
   "dist/visual-proof/knowledge.png"
   "${NATIVE_REVIEW}"
-  "${NATIVE_INTERACTIVE}"
 )
 
 missing=0
@@ -49,7 +53,7 @@ images=(
   "${ROOT}/${NATIVE_REVIEW}"
   "${ROOT}/dist/visual-proof/replay-inference-spread.png"
   "${ROOT}/dist/visual-proof/knowledge.png"
-  "${ROOT}/${NATIVE_INTERACTIVE}"
+  "${ROOT}/${NATIVE_REVIEW}"
   "${ROOT}/dist/visual-proof/home.png"
   "${ROOT}/dist/visual-proof/replay-inference-spread.png"
 )
